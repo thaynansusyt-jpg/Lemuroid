@@ -36,7 +36,28 @@ jobs:
           packages: platform-tools
 
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools"
+        run: sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools" "ndk;26.3.11579264"
+
+      - name: Build extra gpSP core
+        env:
+          GPSP_COMMIT: 5819380c2ffb0900219d700a382ee68c464ebb99
+        run: |
+          set -euo pipefail
+          gpsp_src="$RUNNER_TEMP/kl-gpsp"
+          git init "$gpsp_src"
+          git -C "$gpsp_src" remote add origin https://github.com/libretro/gpsp.git
+          git -C "$gpsp_src" fetch --depth 1 origin "$GPSP_COMMIT"
+          git -C "$gpsp_src" checkout --detach FETCH_HEAD
+          "$ANDROID_HOME/ndk/26.3.11579264/ndk-build" -C "$gpsp_src" \
+            APP_BUILD_SCRIPT="$gpsp_src/jni/Android.mk" \
+            APP_ABI="armeabi-v7a arm64-v8a x86 x86_64" \
+            APP_PLATFORM=android-21 NDK_TOOLCHAIN_VERSION=clang NDK_DEBUG=0 -j2
+          for abi in armeabi-v7a arm64-v8a x86 x86_64; do
+            test -s "$gpsp_src/libs/$abi/libretro.so"
+            mkdir -p "lemuroid-app/src/main/jniLibs/$abi"
+            cp "$gpsp_src/libs/$abi/libretro.so" \
+              "lemuroid-app/src/main/jniLibs/$abi/libgpsp_libretro_android.so"
+          done
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
