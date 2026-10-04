@@ -8,6 +8,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlConsoleShell
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -110,8 +111,8 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
-            SystemBarStyle.dark(Color.TRANSPARENT),
-            SystemBarStyle.dark(Color.TRANSPARENT),
+            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
 
@@ -171,6 +172,7 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
                     .collectAsState(MainViewModel.UiState())
                     .value
 
+            KlConsoleShell {
             Scaffold(
                 topBar = {
                     MainTopBar(
@@ -344,6 +346,8 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
                         )
                     }
                 }
+            }
+
             }
 
             MainGameContextActions(
