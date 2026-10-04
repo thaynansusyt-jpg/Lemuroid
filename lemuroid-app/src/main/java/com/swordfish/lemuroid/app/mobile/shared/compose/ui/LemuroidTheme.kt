@@ -77,19 +77,24 @@ private val DarkColorScheme =
 
 @Composable
 fun AppTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val colors =
-        when {
-            dynamicColor && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-            dynamicColor && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
-            darkTheme -> DarkColorScheme
-            else -> LightColorScheme
-        }
-
-    MaterialTheme(colorScheme = colors) {
-        content()
-    }
+    // KL's console interface has a fixed palette, independent of wallpaper colors.
+    val colors = if (darkTheme) DarkColorScheme else lightColorScheme(
+        primary = androidx.compose.ui.graphics.Color(0xFF007AAE),
+        onPrimary = androidx.compose.ui.graphics.Color.White,
+        primaryContainer = androidx.compose.ui.graphics.Color(0xFFD6F2FF),
+        onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF163A50),
+        secondary = androidx.compose.ui.graphics.Color(0xFF477B94),
+        secondaryContainer = androidx.compose.ui.graphics.Color(0xFFE0F5FF),
+        background = androidx.compose.ui.graphics.Color(0xFFF0F7FA),
+        surface = androidx.compose.ui.graphics.Color(0xFFFCFEFF),
+        surfaceVariant = androidx.compose.ui.graphics.Color(0xFFE5EFF4),
+        onBackground = androidx.compose.ui.graphics.Color(0xFF163A50),
+        onSurface = androidx.compose.ui.graphics.Color(0xFF163A50),
+        onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF476579),
+        outline = androidx.compose.ui.graphics.Color(0xFF7496A8),
+    )
+    MaterialTheme(colorScheme = colors) { content() }
 }
