@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -99,6 +101,23 @@ private fun HomeScreen(
                 .padding(top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF122D23)),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("KL GBA", color = Color(0xFF86EFAC), style = MaterialTheme.typography.headlineLarge)
+                Text("Sua aventura começa aqui.", color = Color(0xFFF0FFF4), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Seus jogos, suas cores, suas capinhas. Segure um jogo para personalizar a capa.",
+                    color = Color(0xFFC4DCCD),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
         AnimatedVisibility(state.showNoNotificationPermissionCard) {
             HomeNotification(
                 titleId = R.string.home_notification_title,
