@@ -90,7 +90,7 @@ fun LemuroidTopAppBar(
                     onUpdateQueryString = onUpdateQueryString,
                 )
             } else {
-                Text(text = stringResource(route.titleId))
+                Text(text = if (route == MainRoute.HOME) "KL • PLAY" else stringResource(route.titleId))
             }
         },
         colors =
