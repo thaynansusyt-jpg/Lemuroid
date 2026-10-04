@@ -29,6 +29,7 @@ class TouchControllerSettingsManager(private val sharedPreferences: SharedPrefer
         val rotation: Float = DEFAULT_ROTATION,
         val marginX: Float = DEFAULT_MARGIN_X,
         val marginY: Float = DEFAULT_MARGIN_Y,
+        val skin: String = "EMERALD",
     )
 
     private fun computeInsetsPaddings(
