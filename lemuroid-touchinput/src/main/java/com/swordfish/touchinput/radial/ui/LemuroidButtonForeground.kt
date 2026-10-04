@@ -82,6 +82,7 @@ private fun BoxWithConstraintsScope.LemuroidButtonForegroundLabel(
         modifier = Modifier.wrapContentSize(),
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
+        fontFamily = LocalLemuroidPadTheme.current.fontFamily,
         text = label,
         color = LocalLemuroidPadTheme.current.icons(pressedState.value),
         fontSize = fontSize.textUnit(),
