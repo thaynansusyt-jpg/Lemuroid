@@ -30,7 +30,7 @@ fun PadKitScope.GBALeft(
     settings: TouchControllerSettingsManager.Settings,
 ) {
     CompositionLocalProvider(
-        LocalLemuroidPadTheme provides remember { LemuroidPadTheme(emerald = true) },
+        LocalLemuroidPadTheme provides remember(settings.skin) { LemuroidPadTheme(skin = settings.skin) },
     ) {
         BaseLayoutLeft(
             settings = settings,
@@ -51,7 +51,7 @@ fun PadKitScope.GBARight(
     settings: TouchControllerSettingsManager.Settings,
 ) {
     CompositionLocalProvider(
-        LocalLemuroidPadTheme provides remember { LemuroidPadTheme(emerald = true) },
+        LocalLemuroidPadTheme provides remember(settings.skin) { LemuroidPadTheme(skin = settings.skin) },
     ) {
         BaseLayoutRight(
             settings = settings,
