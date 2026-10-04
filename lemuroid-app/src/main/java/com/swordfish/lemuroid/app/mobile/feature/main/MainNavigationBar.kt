@@ -4,6 +4,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -33,7 +39,12 @@ private fun LemuroidNavigationBar(
     currentRoute: MainRoute?,
     navController: NavHostController,
 ) {
-    NavigationBar(modifier = Modifier.fillMaxWidth()) {
+    NavigationBar(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(28.dp)),
+        containerColor = Color.White,
+        tonalElevation = 2.dp,
+    ) {
         MainNavigationRoutes.values().forEach { destination ->
             val isSelected = currentRoute?.root == destination.route
             val iconDrawable = if (isSelected) destination.selectedIcon else destination.unselectedIcon
@@ -47,6 +58,11 @@ private fun LemuroidNavigationBar(
                 },
                 label = { Text(stringResource(destination.titleId)) },
                 selected = isSelected,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color(0xFF007AAE),
+                    selectedTextColor = Color(0xFF007AAE),
+                    indicatorColor = Color(0xFFD6F2FF),
+                ),
                 onClick = {
                     navController.navigate(destination.route.route) {
                         // Pop up to the start destination of the graph to
