@@ -10,6 +10,11 @@ import com.swordfish.lemuroid.BuildConfig
 import com.swordfish.lemuroid.R
 import com.swordfish.lemuroid.app.mobile.feature.settings.SettingsManager
 import com.swordfish.lemuroid.app.shared.game.ShaderChooser
+import com.swordfish.lemuroid.app.shared.game.KlCheats
+import com.swordfish.libretrodroid.LibretroDroid
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
 import com.swordfish.lemuroid.app.shared.rumble.RumbleManager
 import com.swordfish.lemuroid.app.shared.settings.HDModeQuality
 import com.swordfish.lemuroid.common.coroutines.MutableStateProperty
@@ -69,6 +74,8 @@ class GameViewModelRetroGameView(
         data object Ready : GameState
     }
 
+    private var loadedGame: Game? = null
+
     private val gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState.Uninitialized)
 
     private val retroGameViewFlow = MutableStateFlow<GLRetroView?>(null)
@@ -87,6 +94,8 @@ class GameViewModelRetroGameView(
     ) {
         val currentState = gameState.value
         if (currentState != GameState.Uninitialized) return
+
+        loadedGame = game
 
         val autoSaveEnabled = settingsManager.autoSave()
         val filter = settingsManager.screenFilter()
@@ -291,6 +300,46 @@ class GameViewModelRetroGameView(
 
         owner.launchOnState(Lifecycle.State.RESUMED) {
             initializeRumbleFlow()
+        }
+
+        owner.launchOnState(Lifecycle.State.RESUMED) {
+            initializeCheats()
+        }
+    }
+
+    private suspend fun initializeCheats() {
+        try {
+            val view = retroGameViewFlow()
+            val game = loadedGame ?: return
+            if (game.systemId != "gba") return
+            // The core must have loaded the ROM before receiving native cheat calls.
+            view.getGLRetroEvents()
+                .filterIsInstance<GLRetroView.GLRetroEvents.FrameRendered>()
+                .first()
+            val enabledCheats = withContext(Dispatchers.IO) {
+                KlCheats.read(appContext, game).filter { it.enabled }
+            }
+            val completed = CompletableDeferred<Unit>()
+            view.queueEvent {
+                try {
+                    // mGBA ignores the enabled flag and index. Reset then add enabled entries only.
+                    LibretroDroid.resetCheat()
+                    enabledCheats.forEachIndexed { index, entry ->
+                        LibretroDroid.setCheat(index, true, KlCheats.coreCode(entry))
+                    }
+                    completed.complete(Unit)
+                } catch (error: Exception) {
+                    // Remove partially applied entries if the engine rejects a request.
+                    runCatching { LibretroDroid.resetCheat() }
+                    completed.completeExceptionally(error)
+                }
+            }
+            completed.await()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Timber.e(error, "Could not apply KL cheats")
+            sideEffects.showToast("Não foi possível aplicar os cheats. Confira os códigos no menu Cheats KL.")
         }
     }
 
