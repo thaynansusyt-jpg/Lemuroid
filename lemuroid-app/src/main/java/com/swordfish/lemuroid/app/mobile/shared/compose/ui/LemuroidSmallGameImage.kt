@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -22,6 +24,11 @@ fun LemuroidSmallGameImage(
     modifier: Modifier = Modifier,
     game: Game,
 ) {
+    val context = LocalContext.current
+    val coverRevision by CoverUtils.coverRevision.collectAsState()
+    val cover = remember(game.fileUri, game.coverFrontUrl, coverRevision) {
+        CoverUtils.coverModel(context, game)
+    }
     val fallbackDrawable =
         remember(game) {
             CoverUtils.getFallbackDrawable(game)
@@ -32,7 +39,7 @@ fun LemuroidSmallGameImage(
     AsyncImage(
         model =
             ImageRequest.Builder(LocalContext.current)
-                .data(game.coverFrontUrl)
+                .data(cover)
                 .build(),
         contentDescription = game.title,
         modifier =
