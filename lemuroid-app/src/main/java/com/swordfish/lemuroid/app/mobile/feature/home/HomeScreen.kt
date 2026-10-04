@@ -294,8 +294,8 @@ private fun KlWifiRoomDialog(onClose: () -> Unit) {
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Teste de conexão entre celulares. As trocas e batalhas de Pokémon ainda não estão disponíveis nesta etapa.")
-                Text("Até 3 pessoas: 1 anfitrião + 2 visitantes. Use o mesmo Wi-Fi nos celulares.")
+                Text("Multiplayer Wi-Fi: somente jogos compatíveis com o adaptador wireless do GBA. Nesta etapa, a sala ainda não conecta os jogos.")
+                Text("Até 3 pessoas: 1 anfitrião + 2 visitantes. Use o mesmo Wi-Fi nos celulares. A quantidade de participantes dentro do jogo depende do próprio jogo.")
                 if (!connected && !connecting) {
                     OutlinedTextField(
                         value = playerName,
