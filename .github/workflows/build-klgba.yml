@@ -1,10 +1,9 @@
-name: Build KL GBA
+name: Build KL GBA Beta
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - dev
+    branches: [dev]
 
 permissions:
   contents: read
@@ -17,61 +16,86 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
 
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools" "ndk;26.3.11579264"
+        run: sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools"
 
-      - name: Build extra gpSP core
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepare private signing
         env:
-          GPSP_COMMIT: 5819380c2ffb0900219d700a382ee68c464ebb99
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          python - <<'PY'
+          import os, base64
+          from pathlib import Path
+          for name in ("KEYSTORE_BASE64", "KEYSTORE_PASSWORD"):
+              if not os.environ.get(name):
+                  raise SystemExit("Falta criar o Secret: " + name)
+          key = Path(os.environ["RUNNER_TEMP"]) / "kl-release.p12"
+          key.write_bytes(base64.b64decode("".join(os.environ["KEYSTORE_BASE64"].split()), validate=True))
+          key.chmod(0o600)
+          p = Path("lemuroid-app/build.gradle.kts")
+          s = p.read_text()
+          old = '''storeFile = file("$rootDir/release.jks")
+                      keyAlias = "lemuroid"
+                      storePassword = "lemuroid"
+                      keyPassword = "lemuroid"'''
+          new = '''storeFile = file(System.getenv("KL_KEYSTORE_PATH"))
+                      storeType = "PKCS12"
+                      keyAlias = "klgba"
+                      storePassword = System.getenv("KEYSTORE_PASSWORD")
+                      keyPassword = System.getenv("KEYSTORE_PASSWORD")'''
+          if old not in s:
+              raise SystemExit("O bloco de assinatura mudou. Nao publicar este build.")
+          s = s.replace(old, new, 1)
+          s = s.replace("isMinifyEnabled = true", "isMinifyEnabled = false", 1)
+          s = s.replace("versionCode = 252", "versionCode = 253", 1)
+          s = s.replace('versionName = "1.17.0"', 'versionName = "0.1.0-beta.1"', 1)
+          p.write_text(s)
+          PY
+
+      - name: Build signed APK
+        env:
+          KL_KEYSTORE_PATH: ${{ runner.temp }}/kl-release.p12
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :lemuroid-app:assembleFreeBundleRelease --stacktrace
+
+      - name: Verify and package
         run: |
           set -euo pipefail
-          gpsp_src="$RUNNER_TEMP/kl-gpsp"
-          git init "$gpsp_src"
-          git -C "$gpsp_src" remote add origin https://github.com/libretro/gpsp.git
-          git -C "$gpsp_src" fetch --depth 1 origin "$GPSP_COMMIT"
-          git -C "$gpsp_src" checkout --detach FETCH_HEAD
-          "$ANDROID_HOME/ndk/26.3.11579264/ndk-build" -C "$gpsp_src" \
-            APP_BUILD_SCRIPT="$gpsp_src/jni/Android.mk" \
-            APP_ABI="armeabi-v7a arm64-v8a x86 x86_64" \
-            APP_PLATFORM=android-21 NDK_TOOLCHAIN_VERSION=clang NDK_DEBUG=0 -j2
-          for abi in armeabi-v7a arm64-v8a x86 x86_64; do
-            test -s "$gpsp_src/libs/$abi/libretro.so"
-            mkdir -p "lemuroid-app/src/main/jniLibs/$abi"
-            cp "$gpsp_src/libs/$abi/libretro.so" \
-              "lemuroid-app/src/main/jniLibs/$abi/libgpsp_libretro_android.so"
-          done
+          apks=(lemuroid-app/build/outputs/apk/freeBundle/release/*.apk)
+          test "${#apks[@]}" -eq 1
+          test -f "${apks[0]}"
+          mkdir -p public-apk
+          cp "${apks[0]}" public-apk/KL-GBA-0.1.0-beta.1.apk
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify public-apk/KL-GBA-0.1.0-beta.1.apk
+          cd public-apk
+          sha256sum KL-GBA-0.1.0-beta.1.apk > SHA256SUMS.txt
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Make Gradle executable
-        run: chmod +x gradlew
-
-      - name: Build APK
-        run: ./gradlew :lemuroid-app:assembleFreeBundleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: KL-GBA-debug
-          path: lemuroid-app/build/outputs/apk/freeBundle/debug/*.apk
+          name: KL-GBA-0.1.0-beta.1
+          path: public-apk/*
           if-no-files-found: error
           retention-days: 14
+
+      - name: Remove temporary key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/kl-release.p12"
