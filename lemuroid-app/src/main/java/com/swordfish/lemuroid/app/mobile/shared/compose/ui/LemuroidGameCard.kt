@@ -35,8 +35,8 @@ fun LemuroidGameCard(
 ) {
     ElevatedCard(
         modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF122D23)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().combinedClickable(
@@ -55,7 +55,7 @@ fun LemuroidGameCard(
                         Icon(
                             imageVector = if (game.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (game.isFavorite) "Remover dos favoritos" else "Adicionar aos favoritos",
-                            tint = Color(0xFFFFD66B),
+                            tint = Color(0xFFE19C16),
                         )
                     }
                 }
@@ -63,7 +63,7 @@ fun LemuroidGameCard(
             Text(
                 text = game.title,
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp),
-                color = Color(0xFFF0FFF4),
+                color = Color(0xFF163A50),
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
                 minLines = 2,
@@ -72,7 +72,7 @@ fun LemuroidGameCard(
             Text(
                 text = game.systemId.uppercase(),
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 12.dp),
-                color = Color(0xFF86EFAC),
+                color = Color(0xFF007AAE),
                 style = MaterialTheme.typography.labelSmall,
             )
         }
