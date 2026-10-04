@@ -6,7 +6,31 @@ import androidx.compose.ui.graphics.DefaultShadowColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-class LemuroidPadTheme(private val emerald: Boolean = false) {
+class LemuroidPadTheme(skin: String = "CLASSIC") {
+    private data class Palette(
+        val fill: Color,
+        val pressedFill: Color,
+        val pressedIcon: Color,
+    )
+
+    private val palette =
+        when (skin) {
+            "EMERALD" -> Palette(Color(0xFF087F4C), Color(0xFF86EFAC), Color(0xFF063D25))
+            "FIRE" -> Palette(Color(0xFFB93820), Color(0xFFFFC38A), Color(0xFF57170B))
+            "DARK" -> Palette(Color(0xFF262B36), Color(0xFF94A3B8), Color(0xFF101827))
+            else -> null
+        }
+
+    companion object {
+        val skinOptions =
+            listOf(
+                "CLASSIC" to "KL Classic",
+                "EMERALD" to "KL Emerald",
+                "FIRE" to "KL Fire",
+                "DARK" to "KL Dark",
+            )
+    }
+
     private fun gray(
         luminosity: Float,
         opacity: Float,
@@ -17,25 +41,25 @@ class LemuroidPadTheme(private val emerald: Boolean = false) {
     val foregroundPadding: Dp = 8.dp
     val padding: Dp = 4.dp
 
-    private val icons = if (emerald) Color(0xFFF0FFF4).copy(alpha = 0.92f) else gray(0.0f, 0.50f)
-    private val iconsPressed = if (emerald) Color(0xFF063D25) else gray(1.0f, 0.50f)
+    private val icons = if (palette != null) Color(0xFFF0FFF4).copy(alpha = 0.92f) else gray(0.0f, 0.50f)
+    private val iconsPressed = palette?.pressedIcon ?: gray(1.0f, 0.50f)
 
-    private val level3Fill = if (emerald) Color(0xFF087F4C).copy(alpha = 0.72f) else gray(1.0f, 0.50f)
-    private val level3FillPressed = if (emerald) Color(0xFF86EFAC).copy(alpha = 0.90f) else gray(0.0f, 0.50f)
+    private val level3Fill = palette?.fill?.copy(alpha = 0.72f) ?: gray(1.0f, 0.50f)
+    private val level3FillPressed = palette?.pressedFill?.copy(alpha = 0.90f) ?: gray(0.0f, 0.50f)
     val level3Shadow = DefaultShadowColor.copy(0.05f)
     val level3ShadowWidth = 4.dp
 
-    private val level2Fill = if (emerald) Color(0xFF065F46).copy(alpha = 0.22f) else gray(1.0f, 0.125f)
-    private val level2FillPressed = if (emerald) Color(0xFF86EFAC).copy(alpha = 0.35f) else gray(0.0f, 0.125f)
+    private val level2Fill = palette?.fill?.copy(alpha = 0.22f) ?: gray(1.0f, 0.125f)
+    private val level2FillPressed = palette?.pressedFill?.copy(alpha = 0.35f) ?: gray(0.0f, 0.125f)
     val level2Shadow = DefaultShadowColor.copy(0.05f)
     val level2ShadowWidth = 4.dp
 
-    val level1Fill = if (emerald) Color(0xFF065F46).copy(alpha = 0.16f) else gray(1.0f, 0.10f)
+    val level1Fill = palette?.fill?.copy(alpha = 0.16f) ?: gray(1.0f, 0.10f)
     val level1Shadow = DefaultShadowColor.copy(0.10f)
     val level1ShadowWidth = 4.dp
 
     val level0CornerRadius = 0.dp
-    val level0Fill = if (emerald) Color(0xFF022C22).copy(alpha = 0.12f) else gray(1.0f, 0.05f)
+    val level0Fill = palette?.fill?.copy(alpha = 0.12f) ?: gray(1.0f, 0.05f)
     val level0Shadow = DefaultShadowColor.copy(0.10f)
     val level0ShadowWidth = 2.dp
 
