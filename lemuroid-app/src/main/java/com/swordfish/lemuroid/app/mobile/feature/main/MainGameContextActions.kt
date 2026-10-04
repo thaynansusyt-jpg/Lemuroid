@@ -1,5 +1,19 @@
 package com.swordfish.lemuroid.app.mobile.feature.main
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import com.swordfish.lemuroid.app.shared.covers.CoverUtils
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -56,6 +70,30 @@ fun MainGameContextActions(
     onFavoriteToggle: (Game, Boolean) -> Unit,
     onCreateShortcut: (Game) -> Unit,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var pendingCoverGame by rememberSaveable { mutableStateOf<Game?>(null) }
+    var savingCover by remember { mutableStateOf(false) }
+    val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val game = pendingCoverGame
+        pendingCoverGame = null
+        if (uri != null && game != null) {
+            scope.launch {
+                savingCover = true
+                try {
+                    CoverUtils.saveCustomCover(context.applicationContext, game, uri)
+                    Toast.makeText(context, "Capinha salva!", Toast.LENGTH_SHORT).show()
+                    selectedGameState.value = null
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Toast.makeText(context, error.message ?: "Não foi possível salvar a capa.", Toast.LENGTH_LONG).show()
+                } finally {
+                    savingCover = false
+                }
+            }
+        }
+    }
     val modalSheetState = rememberModalBottomSheetState(true)
     val selectedGame = selectedGameState.value
 
@@ -80,6 +118,31 @@ fun MainGameContextActions(
                 onFavoriteToggle = onFavoriteToggle,
                 shortcutSupported = shortcutSupported,
                 onCreateShortcut = onCreateShortcut,
+                savingCover = savingCover,
+                onChooseCover = {
+                    if (!savingCover) {
+                        pendingCoverGame = selectedGame
+                        coverPicker.launch("image/*")
+                    }
+                },
+                onRestoreCover = {
+                    if (!savingCover) {
+                        scope.launch {
+                            savingCover = true
+                            try {
+                                CoverUtils.removeCustomCover(context.applicationContext, selectedGame)
+                                Toast.makeText(context, "Capa automática restaurada.", Toast.LENGTH_SHORT).show()
+                                selectedGameState.value = null
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (error: Exception) {
+                                Toast.makeText(context, error.message ?: "Não foi possível restaurar a capa.", Toast.LENGTH_LONG).show()
+                            } finally {
+                                savingCover = false
+                            }
+                        }
+                    }
+                },
             )
         }
     }
@@ -94,6 +157,9 @@ private fun ContextActionContent(
     onFavoriteToggle: (Game, Boolean) -> Unit,
     shortcutSupported: Boolean,
     onCreateShortcut: (Game) -> Unit,
+    savingCover: Boolean,
+    onChooseCover: () -> Unit,
+    onRestoreCover: () -> Unit,
 ) {
     Column(
         modifier =
@@ -103,6 +169,18 @@ private fun ContextActionContent(
     ) {
         ContextActionHeader(game = selectedGame)
         Divider()
+        ContextActionEntry(
+            label = if (savingCover) "Salvando capinha…" else "Escolher capa do celular",
+            icon = Icons.Default.Image,
+            enabled = !savingCover,
+            onClick = onChooseCover,
+        )
+        ContextActionEntry(
+            label = "Voltar à capa automática",
+            icon = Icons.Default.RestartAlt,
+            enabled = !savingCover,
+            onClick = onRestoreCover,
+        )
         ContextActionEntry(
             label = stringResource(id = R.string.game_context_menu_resume),
             icon = Icons.Default.PlayArrow,
@@ -187,13 +265,14 @@ private fun ContextActionEntry(
     modifier: Modifier = Modifier,
     label: String,
     icon: ImageVector,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Row(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .clickable(enabled = enabled, onClick = onClick)
                 .height(56.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
