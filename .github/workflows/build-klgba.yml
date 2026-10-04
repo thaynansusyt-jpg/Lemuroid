@@ -43,3 +43,7 @@ jobs:
           path: lemuroid-app/build/outputs/apk/freeBundle/debug/*.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
