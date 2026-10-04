@@ -30,6 +30,12 @@ class TouchControllerSettingsManager(private val sharedPreferences: SharedPrefer
         val marginX: Float = DEFAULT_MARGIN_X,
         val marginY: Float = DEFAULT_MARGIN_Y,
         val skin: String = "EMERALD",
+        val customFill: Long = 0xFF168FC4,
+        val customPressed: Long = 0xFF88DEFF,
+        val customText: Long = 0xFFFFFFFF,
+        val customPressedText: Long = 0xFF083D55,
+        val customOpacity: Float = 0.8f,
+        val customFont: String = "ROUNDED",
     )
 
     private fun computeInsetsPaddings(
@@ -73,7 +79,7 @@ class TouchControllerSettingsManager(private val sharedPreferences: SharedPrefer
             cachedSettings.getOrPut(settingsKey) {
                 val currentSettings =
                     sharedPreferences.getString(settingsKey, null)
-                        ?.let { Json.decodeFromString(Settings.serializer(), it) }
+                        ?.let { runCatching { Json.decodeFromString(Settings.serializer(), it) }.getOrNull() }
 
                 MutableStateFlow(currentSettings)
             }
