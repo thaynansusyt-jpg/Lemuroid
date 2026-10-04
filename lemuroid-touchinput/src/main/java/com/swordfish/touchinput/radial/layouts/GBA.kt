@@ -2,8 +2,12 @@ package com.swordfish.touchinput.radial.layouts
 
 import android.view.KeyEvent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.swordfish.touchinput.radial.LemuroidPadTheme
+import com.swordfish.touchinput.radial.LocalLemuroidPadTheme
 import com.swordfish.touchinput.radial.controls.LemuroidControlCross
 import com.swordfish.touchinput.radial.controls.LemuroidControlFaceButtons
 import com.swordfish.touchinput.radial.layouts.shared.ComposeTouchLayouts
@@ -25,16 +29,20 @@ fun PadKitScope.GBALeft(
     modifier: Modifier = Modifier,
     settings: TouchControllerSettingsManager.Settings,
 ) {
-    BaseLayoutLeft(
-        settings = settings,
-        modifier = modifier,
-        primaryDial = { LemuroidControlCross(id = Id.DiscreteDirection(ComposeTouchLayouts.MOTION_SOURCE_DPAD)) },
-        secondaryDials = {
-            SecondaryButtonL()
-            SecondaryButtonSelect(position = 2)
-            SecondaryButtonMenuPlaceholder(settings)
-        },
-    )
+    CompositionLocalProvider(
+        LocalLemuroidPadTheme provides remember { LemuroidPadTheme(emerald = true) },
+    ) {
+        BaseLayoutLeft(
+            settings = settings,
+            modifier = modifier,
+            primaryDial = { LemuroidControlCross(id = Id.DiscreteDirection(ComposeTouchLayouts.MOTION_SOURCE_DPAD)) },
+            secondaryDials = {
+                SecondaryButtonL()
+                SecondaryButtonSelect(position = 2)
+                SecondaryButtonMenuPlaceholder(settings)
+            },
+        )
+    }
 }
 
 @Composable
@@ -42,28 +50,32 @@ fun PadKitScope.GBARight(
     modifier: Modifier = Modifier,
     settings: TouchControllerSettingsManager.Settings,
 ) {
-    BaseLayoutRight(
-        settings = settings,
-        modifier = modifier,
-        primaryDial = {
-            LemuroidControlFaceButtons(
-                rotationInDegrees = -30f,
-                ids =
-                    persistentListOf(
-                        Id.Key(KeyEvent.KEYCODE_BUTTON_A),
-                        Id.Key(KeyEvent.KEYCODE_BUTTON_B),
-                    ),
-                idsForegrounds =
-                    persistentMapOf<Id.Key, @Composable (State<Boolean>) -> Unit>(
-                        Id.Key(KeyEvent.KEYCODE_BUTTON_A) to { LemuroidButtonForeground(pressed = it, label = "A") },
-                        Id.Key(KeyEvent.KEYCODE_BUTTON_B) to { LemuroidButtonForeground(pressed = it, label = "B") },
-                    ),
-            )
-        },
-        secondaryDials = {
-            SecondaryButtonR()
-            SecondaryButtonStart(position = 2)
-            SecondaryButtonMenu(settings)
-        },
-    )
+    CompositionLocalProvider(
+        LocalLemuroidPadTheme provides remember { LemuroidPadTheme(emerald = true) },
+    ) {
+        BaseLayoutRight(
+            settings = settings,
+            modifier = modifier,
+            primaryDial = {
+                LemuroidControlFaceButtons(
+                    rotationInDegrees = -30f,
+                    ids =
+                        persistentListOf(
+                            Id.Key(KeyEvent.KEYCODE_BUTTON_A),
+                            Id.Key(KeyEvent.KEYCODE_BUTTON_B),
+                        ),
+                    idsForegrounds =
+                        persistentMapOf<Id.Key, @Composable (State<Boolean>) -> Unit>(
+                            Id.Key(KeyEvent.KEYCODE_BUTTON_A) to { LemuroidButtonForeground(pressed = it, label = "A") },
+                            Id.Key(KeyEvent.KEYCODE_BUTTON_B) to { LemuroidButtonForeground(pressed = it, label = "B") },
+                        ),
+                )
+            },
+            secondaryDials = {
+                SecondaryButtonR()
+                SecondaryButtonStart(position = 2)
+                SecondaryButtonMenu(settings)
+            },
+        )
+    }
 }
