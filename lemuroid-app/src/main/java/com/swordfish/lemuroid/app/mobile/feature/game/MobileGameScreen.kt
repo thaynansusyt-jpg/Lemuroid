@@ -31,6 +31,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -176,7 +179,7 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
                         touchControlsVisibleState.value
 
                 if (isVisible) {
-                    CompositionLocalProvider(LocalLemuroidPadTheme provides LemuroidPadTheme()) {
+                    CompositionLocalProvider(LocalLemuroidPadTheme provides remember(touchControllerSettings) { LemuroidPadTheme.fromSettings(touchControllerSettings) }) {
                         if (!isLandscape) {
                             PadContainer(
                                 modifier = Modifier.layoutId(GameScreenLayout.CONSTRAINTS_BOTTOM_CONTAINER),
@@ -269,6 +272,18 @@ private fun MenuEditTouchControls(
 ) {
     val showEditControls = viewModel.isEditControlShown().collectAsState(false)
     if (!showEditControls.value) return
+    var showSkinEditor by rememberSaveable { mutableStateOf(false) }
+    if (showSkinEditor) {
+        KlSkinEditor(
+            initial = touchControllerSettings,
+            onClose = { showSkinEditor = false },
+            onSave = {
+                viewModel.updateTouchControllerSettings(it)
+                showSkinEditor = false
+            },
+        )
+        return
+    }
 
     Dialog(onDismissRequest = { viewModel.showEditControls(false) }) {
         Card(
@@ -286,9 +301,12 @@ private fun MenuEditTouchControls(
                         .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (controllerConfig.touchControllerID == TouchControllerID.GBA) {
+                Column {
                     Text(text = "Skin dos controles")
-                    Text(text = "A escolha fica salva para esta orientação da tela.")
+                    Text(text = "Salva para este console e esta orientação da tela.")
+                    TextButton(onClick = { showSkinEditor = true }) {
+                        Text("Criar / editar minha skin")
+                    }
                     LemuroidPadTheme.skinOptions.forEach { (skinId, skinName) ->
                         val selected = touchControllerSettings.skin == skinId
                         Row(
@@ -313,7 +331,7 @@ private fun MenuEditTouchControls(
                         }
                     }
                 }
-                MenuEditTouchControlRow(Icons.Default.OpenInFull, "Scale", 0f) {
+                MenuEditTouchControlRow(Icons.Default.OpenInFull, "Tamanho", 0f) {
                     Slider(
                         value = touchControllerSettings.scale,
                         onValueChange = {
@@ -323,7 +341,7 @@ private fun MenuEditTouchControls(
                         },
                     )
                 }
-                MenuEditTouchControlRow(Icons.Default.Height, "Horizontal Margin", 90f) {
+                MenuEditTouchControlRow(Icons.Default.Height, "Margem horizontal", 90f) {
                     Slider(
                         value = touchControllerSettings.marginX,
                         onValueChange = {
@@ -333,7 +351,7 @@ private fun MenuEditTouchControls(
                         },
                     )
                 }
-                MenuEditTouchControlRow(Icons.Default.Height, "Vertical Margin", 0f) {
+                MenuEditTouchControlRow(Icons.Default.Height, "Margem vertical", 0f) {
                     Slider(
                         value = touchControllerSettings.marginY,
                         onValueChange = {
@@ -344,7 +362,7 @@ private fun MenuEditTouchControls(
                     )
                 }
                 if (controllerConfig.allowTouchRotation) {
-                    MenuEditTouchControlRow(Icons.Default.RotateLeft, "Rotate", 0f) {
+                    MenuEditTouchControlRow(Icons.Default.RotateLeft, "Rotação", 0f) {
                         Slider(
                             value = touchControllerSettings.rotation,
                             onValueChange = {
