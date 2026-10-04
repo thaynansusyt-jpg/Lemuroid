@@ -21,6 +21,19 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import com.swordfish.lemuroid.app.shared.multiplayer.KlWifiRoom
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -94,6 +107,10 @@ private fun HomeScreen(
     onEnableMicrophoneClicked: () -> Unit,
     onSetDirectoryClicked: () -> Unit,
 ) {
+    var showWifiRoom by rememberSaveable { mutableStateOf(false) }
+    if (showWifiRoom) {
+        KlWifiRoomDialog(onClose = { showWifiRoom = false })
+    }
     Column(
         modifier =
             modifier
@@ -110,6 +127,9 @@ private fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text("KL GBA", color = Color(0xFF86EFAC), style = MaterialTheme.typography.headlineLarge)
+                OutlinedButton(onClick = { showWifiRoom = true }) {
+                    Text("Sala Wi-Fi • teste de conexão", color = Color(0xFF86EFAC))
+                }
                 Text("Sua aventura começa aqui.", color = Color(0xFFF0FFF4), style = MaterialTheme.typography.titleMedium)
                 Text(
                     "Seus jogos, suas cores, suas capinhas. Segure um jogo para personalizar a capa.",
@@ -251,4 +271,91 @@ private fun HomeNotification(
             }
         }
     }
+}
+
+
+@Composable
+private fun KlWifiRoomDialog(onClose: () -> Unit) {
+    val room = remember { KlWifiRoom() }
+    DisposableEffect(room) { onDispose { room.close() } }
+    val state by room.state.collectAsState()
+    var playerName by rememberSaveable { mutableStateOf(Build.MODEL.take(32)) }
+    var hostIp by rememberSaveable { mutableStateOf("") }
+    val clipboard = LocalClipboardManager.current
+    val connected = state.phase == KlWifiRoom.Phase.HOSTING || state.phase == KlWifiRoom.Phase.JOINED
+    val connecting = state.phase == KlWifiRoom.Phase.CONNECTING
+
+    AlertDialog(
+        onDismissRequest = { room.close(); onClose() },
+        title = { Text("Sala Wi-Fi KL") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 440.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("Teste de conexão entre celulares. As trocas e batalhas de Pokémon ainda não estão disponíveis nesta etapa.")
+                Text("Até 3 pessoas: 1 anfitrião + 2 visitantes. Use o mesmo Wi-Fi nos celulares.")
+                if (!connected && !connecting) {
+                    OutlinedTextField(
+                        value = playerName,
+                        onValueChange = { playerName = it.take(32) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Seu nome na sala") },
+                        singleLine = true,
+                    )
+                    OutlinedButton(
+                        onClick = { room.host(playerName) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Criar sala • anfitrião") }
+                    OutlinedTextField(
+                        value = hostIp,
+                        onValueChange = { hostIp = it.take(15) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("IP do anfitrião") },
+                        placeholder = { Text("192.168.1.10") },
+                        singleLine = true,
+                    )
+                    OutlinedButton(
+                        onClick = { room.join(hostIp, playerName) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Entrar na sala • visitante") }
+                }
+                if (state.message.isNotBlank()) Text(state.message)
+                if (state.phase == KlWifiRoom.Phase.HOSTING) {
+                    Text("No outro celular, toque em Entrar na sala e digite este IP:")
+                    if (state.addresses.isEmpty()) {
+                        Text("Não encontrei um IP local. Confira se o Wi-Fi está conectado.")
+                    }
+                    state.addresses.forEach { ip ->
+                        Text(ip, style = MaterialTheme.typography.titleLarge)
+                        TextButton(onClick = { clipboard.setText(AnnotatedString(ip)) }) {
+                            Text("Copiar IP")
+                        }
+                    }
+                }
+                if (connected) {
+                    Text("Pessoas na sala", style = MaterialTheme.typography.titleMedium)
+                    state.members.forEach { member ->
+                        Text(
+                            (if (member.id == 0) "Anfitrião: " else "Visitante ${member.id}: ") + member.name,
+                        )
+                    }
+                    Text("Conexão da sala pronta. Este teste ainda não conecta as ROMs.")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { room.close(); onClose() }) {
+                Text(if (connected) "Sair e fechar" else "Fechar")
+            }
+        },
+        dismissButton = {
+            if (connected || connecting) {
+                TextButton(onClick = { room.leave() }) {
+                    Text(if (connecting) "Cancelar conexão" else "Sair da sala")
+                }
+            }
+        },
+    )
 }
