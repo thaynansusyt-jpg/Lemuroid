@@ -1,6 +1,28 @@
 package com.swordfish.lemuroid.app.mobile.feature.gamemenu
 
 import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.swordfish.lemuroid.app.shared.game.KlCheats
+import com.swordfish.lemuroid.lib.library.db.entity.Game
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,7 +51,20 @@ fun GameMenuHomeScreen(
     gameMenuRequest: GameMenuActivity.GameMenuRequest,
     onResult: KFunction1<Intent.() -> Unit, Unit>,
 ) {
+    var showCheats by rememberSaveable { mutableStateOf(false) }
+    if (showCheats) {
+        KlCheatsDialog(game = gameMenuRequest.game, onClose = { showCheats = false })
+    }
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        if (gameMenuRequest.game.systemId == "gba") {
+            LemuroidSettingsMenuLink(
+                title = { Text("Cheats KL") },
+                icon = {
+                    Icon(painterResource(R.drawable.ic_menu_settings), contentDescription = "Cheats KL")
+                },
+                onClick = { showCheats = true },
+            )
+        }
         if (gameMenuRequest.coreConfig.statesSupported) {
             LemuroidSettingsMenuLink(
                 title = { Text(text = stringResource(id = R.string.game_menu_save)) },
@@ -184,5 +219,198 @@ fun GameMenuHomeScreen(
                 },
             )
         }
+    }
+}
+
+
+@Composable
+private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
+    val context = LocalContext.current.applicationContext
+    val scope = rememberCoroutineScope()
+    val loaded = remember(game.fileUri) { runCatching { KlCheats.read(context, game) } }
+    var cheats by remember(game.fileUri) { mutableStateOf(loaded.getOrDefault(emptyList())) }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var showEditor by rememberSaveable { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var code by rememberSaveable { mutableStateOf("") }
+    var enabled by rememberSaveable { mutableStateOf(false) }
+    var deletingId by rememberSaveable { mutableStateOf<String?>(null) }
+    val loadFailed = loaded.isFailure
+
+    fun persist(next: List<KlCheats.Entry>, afterSave: () -> Unit = {}) {
+        if (busy || loadFailed) return
+        busy = true
+        error = null
+        scope.launch {
+            try {
+                KlCheats.save(context, game, next)
+                cheats = next
+                afterSave()
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                error = exception.message ?: "Não foi possível salvar os cheats."
+            } finally {
+                busy = false
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) onClose() },
+        title = { Text("Cheats KL") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(game.title)
+                Text("Cole códigos de GameShark, Action Replay ou CodeBreaker feitos para esta versão do jogo.")
+                Text("As mudanças serão aplicadas quando você fechar o menu e voltar ao jogo.")
+                if (loadFailed) {
+                    Text("Não foi possível ler a lista salva. Feche e abra o menu novamente.")
+                } else if (cheats.isEmpty()) {
+                    Text("Nenhum cheat adicionado ainda.")
+                }
+                error?.let { Text(it) }
+                if (busy) Text("Salvando…")
+                cheats.forEach { entry ->
+                    HorizontalDivider()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(entry.name, modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = entry.enabled,
+                            enabled = !busy && !loadFailed,
+                            onCheckedChange = { checked ->
+                                persist(cheats.map { if (it.id == entry.id) it.copy(enabled = checked) else it })
+                            },
+                        )
+                    }
+                    Text(if (entry.enabled) "Ligado" else "Desligado")
+                    Row {
+                        TextButton(
+                            enabled = !busy && !loadFailed,
+                            onClick = {
+                                editingId = entry.id
+                                name = entry.name
+                                code = entry.code
+                                enabled = entry.enabled
+                                error = null
+                                showEditor = true
+                            },
+                        ) { Text("Editar") }
+                        TextButton(
+                            enabled = !busy && !loadFailed,
+                            onClick = { deletingId = entry.id },
+                        ) { Text("Excluir") }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !busy, onClick = onClose) { Text("Concluir") }
+        },
+        dismissButton = {
+            TextButton(
+                enabled = !busy && !loadFailed && cheats.size < KlCheats.MAX_ENTRIES,
+                onClick = {
+                    editingId = null
+                    name = ""
+                    code = ""
+                    enabled = false
+                    error = null
+                    showEditor = true
+                },
+            ) { Text("Adicionar") }
+        },
+    )
+
+    if (showEditor) {
+        AlertDialog(
+            onDismissRequest = { if (!busy) showEditor = false },
+            title = { Text(if (editingId == null) "Adicionar cheat" else "Editar cheat") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { if (it.length <= 80) name = it },
+                        label = { Text("Nome do cheat") },
+                        singleLine = true,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = code,
+                        onValueChange = { if (it.length <= 8192) code = it },
+                        label = { Text("Código") },
+                        supportingText = { Text("Cole todas as linhas do mesmo cheat juntas, incluindo o código mestre quando necessário.") },
+                        minLines = 3,
+                        maxLines = 8,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Ativar este cheat", modifier = Modifier.weight(1f))
+                        Switch(checked = enabled, onCheckedChange = { enabled = it }, enabled = !busy)
+                    }
+                    error?.let { Text(it) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !busy,
+                    onClick = {
+                        try {
+                            require(name.isNotBlank()) { "Dê um nome para o cheat." }
+                            val normalized = KlCheats.normalizeCode(code)
+                            val existing = cheats.firstOrNull { it.id == editingId }
+                            val entry = existing?.copy(name = name.trim(), code = normalized, enabled = enabled)
+                                ?: KlCheats.Entry(name = name.trim(), code = normalized, enabled = enabled)
+                            val next = if (existing == null) cheats + entry else
+                                cheats.map { if (it.id == existing.id) entry else it }
+                            persist(next) { showEditor = false }
+                        } catch (exception: IllegalArgumentException) {
+                            error = exception.message
+                        }
+                    },
+                ) { Text(if (busy) "Salvando…" else "Salvar") }
+            },
+            dismissButton = {
+                TextButton(enabled = !busy, onClick = { showEditor = false }) { Text("Cancelar") }
+            },
+        )
+    }
+
+    val deleting = cheats.firstOrNull { it.id == deletingId }
+    if (deleting != null) {
+        AlertDialog(
+            onDismissRequest = { if (!busy) deletingId = null },
+            title = { Text("Excluir cheat?") },
+            text = {
+                Column {
+                    Text(deleting.name)
+                    error?.let { Text(it) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !busy,
+                    onClick = { persist(cheats.filter { it.id != deleting.id }) { deletingId = null } },
+                ) { Text("Excluir") }
+            },
+            dismissButton = {
+                TextButton(enabled = !busy, onClick = { deletingId = null }) { Text("Cancelar") }
+            },
+        )
     }
 }
