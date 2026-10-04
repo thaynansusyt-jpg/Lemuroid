@@ -3,6 +3,8 @@ package com.swordfish.lemuroid.app.mobile.shared.compose.ui
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -18,6 +20,11 @@ fun LemuroidGameImage(
     modifier: Modifier = Modifier,
     game: Game,
 ) {
+    val context = LocalContext.current
+    val coverRevision by CoverUtils.coverRevision.collectAsState()
+    val cover = remember(game.fileUri, game.coverFrontUrl, coverRevision) {
+        CoverUtils.coverModel(context, game)
+    }
     val fallbackDrawable =
         remember(game) {
             CoverUtils.getFallbackDrawable(game)
@@ -28,7 +35,7 @@ fun LemuroidGameImage(
     AsyncImage(
         model =
             ImageRequest.Builder(LocalContext.current)
-                .data(game.coverFrontUrl)
+                .data(cover)
                 .build(),
         contentDescription = game.title,
         modifier =
