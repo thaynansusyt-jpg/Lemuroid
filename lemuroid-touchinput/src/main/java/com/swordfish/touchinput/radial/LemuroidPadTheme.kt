@@ -3,10 +3,23 @@ package com.swordfish.touchinput.radial
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.DefaultShadowColor
+import androidx.compose.ui.text.font.FontFamily
+import com.swordfish.touchinput.radial.settings.TouchControllerSettingsManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-class LemuroidPadTheme(skin: String = "CLASSIC") {
+class LemuroidPadTheme(
+    skin: String = "CLASSIC",
+    private val settings: TouchControllerSettingsManager.Settings? = null,
+) {
+    private val custom = skin == "CUSTOM" && settings != null
+    private val opacity = if (custom) settings!!.customOpacity.coerceIn(0.2f, 1f) else 0.72f
+    val fontFamily: FontFamily = when (if (custom) settings!!.customFont else "ROUNDED") {
+        "SERIF" -> FontFamily.Serif
+        "MONO" -> FontFamily.Monospace
+        "CURSIVE" -> FontFamily.Cursive
+        else -> FontFamily.SansSerif
+    }
     private data class Palette(
         val fill: Color,
         val pressedFill: Color,
@@ -15,6 +28,11 @@ class LemuroidPadTheme(skin: String = "CLASSIC") {
 
     private val palette =
         when (skin) {
+            "CUSTOM" -> Palette(
+                Color(settings?.customFill ?: 0xFF168FC4),
+                Color(settings?.customPressed ?: 0xFF88DEFF),
+                Color(settings?.customPressedText ?: 0xFF083D55),
+            )
             "EMERALD" -> Palette(Color(0xFF087F4C), Color(0xFF86EFAC), Color(0xFF063D25))
             "FIRE" -> Palette(Color(0xFFB93820), Color(0xFFFFC38A), Color(0xFF57170B))
             "DARK" -> Palette(Color(0xFF262B36), Color(0xFF94A3B8), Color(0xFF101827))
@@ -22,12 +40,15 @@ class LemuroidPadTheme(skin: String = "CLASSIC") {
         }
 
     companion object {
+        fun fromSettings(settings: TouchControllerSettingsManager.Settings) =
+            LemuroidPadTheme(settings.skin, settings)
         val skinOptions =
             listOf(
                 "CLASSIC" to "KL Classic",
                 "EMERALD" to "KL Emerald",
                 "FIRE" to "KL Fire",
                 "DARK" to "KL Dark",
+                "CUSTOM" to "Minha skin",
             )
     }
 
@@ -41,11 +62,11 @@ class LemuroidPadTheme(skin: String = "CLASSIC") {
     val foregroundPadding: Dp = 8.dp
     val padding: Dp = 4.dp
 
-    private val icons = if (palette != null) Color(0xFFF0FFF4).copy(alpha = 0.92f) else gray(0.0f, 0.50f)
+    private val icons = if (custom) Color(settings!!.customText) else if (palette != null) Color(0xFFF0FFF4).copy(alpha = 0.92f) else gray(0.0f, 0.50f)
     private val iconsPressed = palette?.pressedIcon ?: gray(1.0f, 0.50f)
 
-    private val level3Fill = palette?.fill?.copy(alpha = 0.72f) ?: gray(1.0f, 0.50f)
-    private val level3FillPressed = palette?.pressedFill?.copy(alpha = 0.90f) ?: gray(0.0f, 0.50f)
+    private val level3Fill = palette?.fill?.copy(alpha = opacity) ?: gray(1.0f, 0.50f)
+    private val level3FillPressed = palette?.pressedFill?.copy(alpha = if (custom) opacity else 0.90f) ?: gray(0.0f, 0.50f)
     val level3Shadow = DefaultShadowColor.copy(0.05f)
     val level3ShadowWidth = 4.dp
 
