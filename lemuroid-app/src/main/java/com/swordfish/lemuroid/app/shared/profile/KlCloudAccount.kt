@@ -37,7 +37,7 @@ object KlCloudAccount {
         }.generateKey()
     }
     private fun <T> session(context: Context, block: (AtomicFile, JSONObject?) -> T): T = synchronized(monitor) {
-        val folder = File(context.filesDir, "kl-cloud").apply { mkdirs() }
+        val folder = File(context.noBackupFilesDir, "kl-cloud").apply { mkdirs() }
         RandomAccessFile(File(folder, "session.lock"), "rw").use { lock -> lock.channel.lock().use {
             val file = AtomicFile(File(folder, "session.bin"))
             val value = if (file.baseFile.exists()) {
