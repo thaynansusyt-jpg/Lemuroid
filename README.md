@@ -4,12 +4,11 @@ Emulador para Android e fork independente do [Lemuroid](https://github.com/Sword
 
 [Site e download](https://kl-gba-play.emilysousa65477.chatgpt.site) · [Releases](https://github.com/thaynansusyt-jpg/Lemuroid/releases) · [Relatar um problema](https://github.com/thaynansusyt-jpg/Lemuroid/issues)
 
-## Versões
+## Versão atual
 
-- **0.5.0-rc.1**: primeira candidata pública, com biblioteca/capas, skins, temas, perfil, Sii e diário local. Google e GitHub ainda não estão configurados.
-- **0.5.0 Plus (0.5.0-plus.1)**: candidata de manutenção. Corrige limites do áudio durante avanço rápido e o estado de carregamento, reduz uploads de imagem repetidos e adiciona conta KL, backup do perfil e conjunto Sii+.
+**0.5.0s Plus — SEGA Edition**: UI Wii U ou Sonic, skin azul, tela cheia, presets DS/3DS, 128 conquistas com recompensas e backup compatível. [Notas completas](docs/SEGA-RELEASE.md).
 
-As versões são de teste. Compatibilidade e desempenho dependem do aparelho, do jogo e do núcleo; não há promessa de 8x ou 60 FPS universais.
+As conquistas medem uso do KL, não objetivos internos das ROMs. Cada conquista libera uma medalha e uma cor para o Sii; #1 libera Sonic e #100 libera Super Sonic. A compatibilidade e o desempenho dependem do aparelho, do jogo e do núcleo.
 
 ## Instalação e atualização
 
@@ -19,7 +18,7 @@ Baixe **somente o APK** da versão desejada. Instale a Plus por cima do KL Play 
 
 Crie a conta em [Conta KL](https://kl-gba-play.emilysousa65477.chatgpt.site/conta.html), guarde o usuário e a senha gerados e entre em Perfil no aplicativo Plus. A conta autentica acesso ao servidor, não identidade civil/e-mail. O conjunto Sii+ é desbloqueado no editor, em Conjuntos.
 
-O backup salva **nome, Sii, diário e estatísticas**. Não inclui saves de jogos, ROMs, capas, skins ou configurações. O app tenta enviar ao pausar uma partida; use **Salvar perfil no site** e confira o último envio confirmado. Jogar funciona offline. Conflitos preservam o perfil local e exigem restauração explícita; não há mesclagem automática. Sem usuário/senha guardados, não existe recuperação de acesso nesta versão. Exclusão da conta e do backup é possível no site e no aplicativo.
+O backup salva **nome, Sii, diário, estatísticas e conquistas**. Não inclui saves de jogos, ROMs, capas, skins ou configurações. O app tenta enviar ao pausar uma partida; use **Salvar perfil no site** e confira o último envio confirmado. Jogar funciona offline. Conflitos preservam o perfil local e exigem restauração explícita; não há mesclagem automática. Sem usuário/senha guardados, não existe recuperação de acesso nesta versão. Exclusão da conta e do backup é possível no site e no aplicativo.
 
 ## Multiplayer experimental
 

@@ -31,6 +31,7 @@ fun KlProfileScreen(modifier: Modifier = Modifier) {
     var profile by remember { mutableStateOf<KlProfileStore.Profile?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    var achievements by remember { mutableStateOf(false) }
     var editor by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf(false) }
     var erase by remember { mutableStateOf(false) }
@@ -86,6 +87,7 @@ fun KlProfileScreen(modifier: Modifier = Modifier) {
             Text(when (p.provider) { "google" -> "Conta Google"; "github" -> "Conta GitHub"; "kl" -> "Conta KL autenticada"; else -> "Perfil neste aparelho" })
             Row { TextButton(onClick = { editName = true }) { Text("Editar nome") }; TextButton(onClick = { clipboard.setText(AnnotatedString(p.id)); message = "ID copiado." }) { Text("Copiar ID") } }
             Button(onClick = { editor = true }) { Text("Personalizar Sii") }
+            OutlinedButton(onClick = { achievements = true }) { Text("Conquistas KL • ${p.earned.size}/128") }
         } }
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Sua conta", style = MaterialTheme.typography.titleLarge)
@@ -96,7 +98,7 @@ fun KlProfileScreen(modifier: Modifier = Modifier) {
                 OutlinedButton(onClick = { login { KlAccountAuth.github(context) { prompt = it } } }, enabled = KlAccountAuth.githubAvailable && loginJob == null, modifier = Modifier.fillMaxWidth()) { Text(if (KlAccountAuth.githubAvailable) "Entrar com GitHub" else "GitHub • em preparação") }
                 if (!KlAccountAuth.googleAvailable && !KlAccountAuth.githubAvailable) Text("A conta KL salva seu perfil no site e libera o conjunto Sii+. Você também pode jogar sem conta.")
             } else if (p.provider == "kl") {
-                Text("Backup: nome, Sii, diário e estatísticas. Saves dos jogos, ROMs, skins e capas ficam no aparelho.")
+                Text("Backup: nome, Sii, diário, estatísticas e conquistas. Saves dos jogos, ROMs, skins e capas ficam no aparelho.")
                 Text(if (lastBackup > 0) "Último envio confirmado: " + java.text.DateFormat.getDateTimeInstance().format(java.util.Date(lastBackup * 1000)) else "Ainda sem envio confirmado.")
                 Button(onClick = { cloudAction { KlCloudAccount.backup(context); message = "Backup confirmado pelo servidor." } }, enabled = !cloudBusy) { Text("Salvar perfil no site") }
                 OutlinedButton(onClick = { restoreCloud = true }, enabled = !cloudBusy) { Text("Restaurar perfil do site") }
@@ -138,7 +140,8 @@ fun KlProfileScreen(modifier: Modifier = Modifier) {
         TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/thaynansusyt-jpg/Lemuroid"))) }) { Text("Código-fonte e créditos") }
         TextButton(onClick = { erase = true }) { Text("Apagar este perfil local", color = MaterialTheme.colorScheme.error) }
     }
-    if (p != null && editor) KlSiiEditor(p.sii, p.provider == "kl", { editor = false }) { sii -> editor = false; action { withContext(Dispatchers.IO) { KlProfileStore.update(context, p.name, sii) } } }
+    if (p != null && achievements) KlAchievementsScreen(p, { achievements = false }) { action { refresh() } }
+    if (p != null && editor) KlSiiEditor(initial = p.sii, siiPlus = p.provider == "kl", onClose = { editor = false }, earned = p.earned, onSave = { sii -> editor = false; action { withContext(Dispatchers.IO) { KlProfileStore.update(context, p.name, sii) } } })
     if (p != null && editName) {
         var name by remember { mutableStateOf(p.name) }
         AlertDialog(onDismissRequest = { editName = false }, title = { Text("Seu nome") }, text = { OutlinedTextField(name, { name = it.take(32) }, singleLine = true) }, confirmButton = { Button(onClick = { editName = false; action { withContext(Dispatchers.IO) { KlProfileStore.update(context, name, p.sii) } } }) { Text("Salvar") } }, dismissButton = { TextButton(onClick = { editName = false }) { Text("Cancelar") } })

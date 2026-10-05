@@ -41,7 +41,10 @@ fun KlDarkModeToggle() {
 @Composable
 fun AppTheme(darkTheme: Boolean? = null, content: @Composable () -> Unit) {
     val (savedDark, _) = klDarkPreference()
-    val colors = if (darkTheme ?: savedDark) darkColorScheme(
+    val sonic = rememberKlSonic()
+    val colors = if (sonic && (darkTheme ?: savedDark)) darkColorScheme(primary = Color(0xFF69A4FF), onPrimary = Color(0xFF001E58), secondary = Color(0xFFFFD342), primaryContainer = Color(0xFF063D9C), onPrimaryContainer = Color.White, secondaryContainer = Color(0xFF5A4200), onSecondaryContainer = Color(0xFFFFE58B), background = Color(0xFF070F26), surface = Color(0xFF111F3D), surfaceVariant = Color(0xFF203455))
+    else if (sonic) lightColorScheme(primary = Color(0xFF0758D8), onPrimary = Color.White, secondary = Color(0xFF846400), primaryContainer = Color(0xFFD9E7FF), onPrimaryContainer = Color(0xFF002B73), secondaryContainer = Color(0xFFFFE58B), onSecondaryContainer = Color(0xFF443000), background = Color(0xFFF0F5FF), surface = Color.White, surfaceVariant = Color(0xFFE1EAFA))
+    else if (darkTheme ?: savedDark) darkColorScheme(
         primary = Color(0xFF74D3FF), onPrimary = Color(0xFF00364F),
         primaryContainer = Color(0xFF124563), onPrimaryContainer = Color(0xFFD6F2FF),
         secondary = Color(0xFFAFD1E2), secondaryContainer = Color(0xFF263F50),
@@ -60,5 +63,6 @@ fun AppTheme(darkTheme: Boolean? = null, content: @Composable () -> Unit) {
         surfaceVariant = Color(0xFFE5EFF4), onSurfaceVariant = Color(0xFF476579),
         outline = Color(0xFF7496A8), outlineVariant = Color(0xFFC9DEE8),
     )
-    MaterialTheme(colorScheme = colors) { content() }
+    val typography = if (sonic) Typography(headlineLarge = Typography().headlineLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), titleLarge = Typography().titleLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) else Typography()
+    MaterialTheme(colorScheme = colors, typography = typography) { content() }
 }

@@ -1,4 +1,4 @@
-name: Build KL Play Plus
+name: Build KL Play SEGA Edition
 
 on:
   workflow_dispatch:
@@ -179,15 +179,8 @@ jobs:
           KL_VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
-          if ! gh release view v0.5.0-rc.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            mkdir -p base-release
-            curl --fail --location --retry 2 'https://kl-gba-play.emilysousa65477.chatgpt.site/downloads/KL-Play-0.5.0-rc.1.apk' -o base-release/KL-Play-0.5.0-rc.1.apk
-            printf '%s  %s\n' '709511255f7dabbbfe26dbeac898a985780c94808af205190fadbecf18c0b825' 'base-release/KL-Play-0.5.0-rc.1.apk' | sha256sum -c -
-            "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify base-release/KL-Play-0.5.0-rc.1.apk
-            gh release create v0.5.0-rc.1 base-release/KL-Play-0.5.0-rc.1.apk --repo "$GITHUB_REPOSITORY" --target 6dcf43a94d05b3ef0ab2591167219afb41f7e223 --title 'KL Play 0.5.0 — candidata pública' --notes-file docs/BASE-RELEASE.md --prerelease
-          fi
           if ! gh release view "v$KL_VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "v$KL_VERSION" public-apk/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'KL Play 0.5.0 Plus — candidata de manutenção' --notes-file docs/PLUS-RELEASE.md --prerelease
+            gh release create "v$KL_VERSION" public-apk/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'KL Play 0.5.0s Plus — SEGA Edition' --notes-file docs/SEGA-RELEASE.md --prerelease
           fi
 
       - uses: actions/upload-artifact@v4
@@ -197,6 +190,41 @@ jobs:
           path: public-apk/*
           if-no-files-found: error
           retention-days: 14
+
+      - name: Replace old releases after website switches download
+        if: github.ref == 'refs/heads/dev'
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KL_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          switched=false
+          for attempt in $(seq 1 80); do
+            if curl --fail --silent --max-time 10 --user-agent 'Mozilla/5.0' 'https://kl-gba-play.emilysousa65477.chatgpt.site/api/download-status' -o "$RUNNER_TEMP/kl-site-status.json"; then
+              if python - <<'PYCODE'
+          import json, os
+          from pathlib import Path
+          status = json.loads((Path(os.environ['RUNNER_TEMP']) / 'kl-site-status.json').read_text())
+          expected = Path('public-apk/SHA256SUMS.txt').read_text().split()[0]
+          raise SystemExit(0 if status.get('available') and status.get('version') == os.environ['KL_VERSION'] and status.get('sha256') == expected else 1)
+          PYCODE
+              then switched=true; break; fi
+            fi
+            sleep 5
+          done
+          if test "$switched" != true; then
+            echo '::warning::SEGA APK published; old releases retained until the website changes download.'
+            exit 0
+          fi
+          for tag in v0.5.0-rc.1 v0.5.0-plus.1; do
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+            fi
+          done
+          if gh api "repos/$GITHUB_REPOSITORY/releases/403197958" >/dev/null 2>&1; then
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/403197958"
+          fi
 
       - name: Remove temporary key and restore source
         if: always()

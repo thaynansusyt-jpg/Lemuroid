@@ -28,8 +28,19 @@ fun KlSii(sii: KlProfileStore.Sii, modifier: Modifier = Modifier) {
         val x = size.width / 2
         fun p(dx: Float, y: Float) = Offset(x + dx*u, y*u)
         val color = ink(sii.ink)
-        val shirt = ink(sii.shirt)
+        val sonic = sii.clothes in setOf("sonic", "super_sonic")
+        val shirt = if (sonic) Color(if (sii.clothes == "super_sonic") 0xFFFFD342 else 0xFF0758D8) else ink(sii.shirt)
         fun line(a: Offset, b: Offset, c: Color = color, w: Float = 7f) = drawLine(c, a, b, w*u, StrokeCap.Round)
+        if (sonic) {
+            val spikes = Path().apply {
+                moveTo(x - 25*u, 53*u); lineTo(x - 40*u, 45*u); lineTo(x - 24*u, 35*u)
+                lineTo(x - 35*u, 17*u); lineTo(x - 9*u, 27*u); lineTo(x, 6*u)
+                lineTo(x + 10*u, 27*u); lineTo(x + 35*u, 17*u); lineTo(x + 24*u, 35*u)
+                lineTo(x + 40*u, 45*u); lineTo(x + 25*u, 53*u); close()
+            }
+            drawPath(spikes, shirt)
+            drawCircle(shirt, 28*u, p(0f, 47f))
+        }
         if (sii.clothes == "hoodie") drawCircle(shirt, 29*u, p(0f, 47f))
         drawCircle(Color(0xFFFFE6BE), 22*u, p(0f, 47f))
         drawCircle(color, 22*u, p(0f, 47f), style = androidx.compose.ui.graphics.drawscope.Stroke(4*u))
@@ -54,6 +65,17 @@ fun KlSii(sii: KlProfileStore.Sii, modifier: Modifier = Modifier) {
         if (sii.clothes == "sport") { line(p(-18f, 91f), p(18f, 91f), Color.White, 5f); line(p(-18f, 118f), p(18f, 118f), Color.White, 5f) }
         if (sii.clothes == "hoodie") { line(p(-6f, 82f), p(-6f, 98f), Color.White, 2f); line(p(6f, 82f), p(6f, 98f), Color.White, 2f) }
         if (sii.clothes == "kl" || human) drawImage(logo, dstOffset = IntOffset((x-14*u).toInt(), (94*u).toInt()), dstSize = IntSize((28*u).toInt().coerceAtLeast(1), (28*u).toInt().coerceAtLeast(1)))
+        if (sonic) {
+            drawCircle(Color.White, 8*u, p(-46f, 129f)); drawCircle(Color.White, 8*u, p(46f, 129f))
+            line(p(-29f, 188f), p(-38f, 188f), Color(0xFFE83336), 12f)
+            line(p(29f, 188f), p(38f, 188f), Color(0xFFE83336), 12f)
+            drawCircle(Color(0xFFFFD342), 11*u, p(0f, 109f), style = androidx.compose.ui.graphics.drawscope.Stroke(4*u))
+        }
+        if (sii.badge > 0) {
+            drawCircle(Color(0xFFFFD342), 10*u, p(24f, 128f))
+            val label = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textSize = 8*u; textAlign = android.graphics.Paint.Align.CENTER; setColor(android.graphics.Color.rgb(16, 35, 60)); isFakeBoldText = true }
+            drawContext.canvas.nativeCanvas.drawText(sii.badge.toString(), x+24*u, 131*u, label)
+        }
         if (sii.face == "cool") { line(p(-14f, 43f), p(14f, 43f), color, 8f) }
         else { drawCircle(color, 2*u, p(-8f, 42f)); drawCircle(color, 2*u, p(8f, 42f)) }
         if (sii.face == "happy") { line(p(-7f, 53f), p(0f, 57f), color, 2f); line(p(0f, 57f), p(7f, 53f), color, 2f) }
@@ -62,7 +84,7 @@ fun KlSii(sii: KlProfileStore.Sii, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun KlSiiEditor(initial: KlProfileStore.Sii, siiPlus: Boolean = false, onClose: () -> Unit, onSave: (KlProfileStore.Sii) -> Unit) {
+fun KlSiiEditor(initial: KlProfileStore.Sii, siiPlus: Boolean = false, onClose: () -> Unit, onSave: (KlProfileStore.Sii) -> Unit, earned: Set<Int> = emptySet()) {
     var sii by remember { mutableStateOf(initial) }
     var customInk by remember { mutableStateOf(initial.ink) }
     var customShirt by remember { mutableStateOf(initial.shirt) }
@@ -78,6 +100,12 @@ fun KlSiiEditor(initial: KlProfileStore.Sii, siiPlus: Boolean = false, onClose: 
             TextButton(onClick = { sii = sii.copy(clothes = "sii_plus") }, enabled = siiPlus) {
                 Text(if (siiPlus) "Sii+ • conjunto humano KL" else "Sii+ • entre com uma conta KL para desbloquear")
             }
+            listOf(1 to ("sonic" to "Sii Sonic"), 100 to ("super_sonic" to "Sii Super Sonic")).forEach { (medal, costume) ->
+                TextButton(onClick = { sii = sii.copy(clothes = costume.first) }, enabled = medal in earned) {
+                    Text(if (medal in earned) costume.second else "${costume.second} • desbloqueie a conquista #$medal")
+                }
+            }
+            if (sii.badge > 0) TextButton(onClick = { sii = sii.copy(badge = 0) }) { Text("Remover medalha do peito") }
             Text(if (sii.clothes == "sii_plus") "Cor do cabelo e da calça" else "Cor do palito")
             ColorChoices { sii = sii.copy(ink = it); customInk = it }
             OutlinedTextField(customInk, { customInk = it.take(7); if (it.matches(Regex("#[0-9a-fA-F]{6}"))) sii = sii.copy(ink = it) }, label = { Text("Cor personalizada #RRGGBB") }, singleLine = true)

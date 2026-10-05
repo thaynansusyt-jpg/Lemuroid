@@ -16,8 +16,10 @@ object GameScreenLayout {
     fun buildConstraintSet(
         isLandscape: Boolean,
         allowTouchOverlay: Boolean,
+        fullScreen: Boolean = false,
     ): ConstraintSet {
         return when {
+            fullScreen -> buildConstraintSetLandscape()
             !isLandscape -> buildConstraintSetPortrait()
             allowTouchOverlay -> buildConstraintSetLandscape()
             else -> buildConstraintSetLandscapeNoOverlay()

@@ -83,6 +83,7 @@ import gg.padkit.inputstate.InputState
 fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val isLandscape = constraints.maxWidth > constraints.maxHeight
+        val klFullScreen = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlFullScreen()
 
         LaunchedEffect(isLandscape) {
             val orientation =
@@ -152,7 +153,7 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
 
             LaunchedEffect(fullPos, viewPos) {
                 val gameView = viewModel.retroGameView.retroGameViewFlow()
-                if (fullPos == null || viewPos == null) return@LaunchedEffect
+                if (fullPos == null || viewPos == null || fullPos.width <= 0f || fullPos.height <= 0f || viewPos.width <= 0f || viewPos.height <= 0f) return@LaunchedEffect
                 val viewport =
                     RectF(
                         (viewPos.left - fullPos.left) / fullPos.width,
@@ -169,6 +170,7 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
                     GameScreenLayout.buildConstraintSet(
                         isLandscape,
                         currentControllerConfig?.allowTouchOverlay ?: true,
+                        klFullScreen,
                     ),
             ) {
                 Box(
@@ -186,11 +188,11 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
 
                 if (isVisible) {
                     CompositionLocalProvider(LocalLemuroidPadTheme provides remember(touchControllerSettings) { LemuroidPadTheme.fromSettings(touchControllerSettings) }) {
-                        if (!isLandscape) {
+                        if (!isLandscape && !klFullScreen) {
                             PadContainer(
                                 modifier = Modifier.layoutId(GameScreenLayout.CONSTRAINTS_BOTTOM_CONTAINER),
                             )
-                        } else if (!currentControllerConfig.allowTouchOverlay) {
+                        } else if (isLandscape && !currentControllerConfig.allowTouchOverlay && !klFullScreen) {
                             PadContainer(
                                 modifier = Modifier.layoutId(GameScreenLayout.CONSTRAINTS_LEFT_CONTAINER),
                             )
@@ -321,11 +323,13 @@ private fun MenuEditTouchControls(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Column {
+                    com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlScreenOptions(viewModel.klCoreName)
                     Text(text = "Skin dos controles")
                     Text(text = "Salva para este console e esta orientação da tela.")
                     TextButton(onClick = { showSkinEditor = true }) {
                         Text("Criar / editar minha skin")
                     }
+                    val skinContext = LocalContext.current
                     LemuroidPadTheme.skinOptions.forEach { (skinId, skinName) ->
                         val selected = touchControllerSettings.skin == skinId
                         Row(
@@ -336,6 +340,7 @@ private fun MenuEditTouchControls(
                                         selected = selected,
                                         role = Role.RadioButton,
                                         onClick = {
+                                            if (skinId == "SONIC") com.swordfish.lemuroid.app.shared.profile.KlProfileStore.eventAsync(skinContext, "sonic_skin")
                                             viewModel.updateTouchControllerSettings(
                                                 touchControllerSettings.copy(skin = skinId),
                                             )

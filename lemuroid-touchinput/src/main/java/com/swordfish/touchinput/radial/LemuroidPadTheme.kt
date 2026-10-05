@@ -22,8 +22,8 @@ class LemuroidPadTheme(
     val buttonCornerRadius = if (custom) {
         if (settings!!.customCornerRadius >= 36f) Dp.Infinity else settings.customCornerRadius.coerceIn(0f, 36f).dp
     } else Dp.Infinity
-    val outlineColor = if (custom) Color(settings!!.customOutline) else Color.Transparent
-    val outlineWidth = if (custom) settings!!.customOutlineWidth.coerceIn(0f, 3f).dp else 0.dp
+    val outlineColor = if (skin == "SONIC") Color(0xFFFFD342).copy(alpha = 0.8f) else if (custom) Color(settings!!.customOutline) else Color.Transparent
+    val outlineWidth = if (skin == "SONIC") 2.dp else if (custom) settings!!.customOutlineWidth.coerceIn(0f, 3f).dp else 0.dp
     private val baseColor = if (custom) Color(settings!!.customBaseColor) else null
     private val baseOpacity = if (custom) settings!!.customBaseOpacity.coerceIn(0f, 1f) else 0f
     private val shadows = !custom || settings!!.customShadow
@@ -40,6 +40,7 @@ class LemuroidPadTheme(
                 Color(settings?.customPressed ?: 0xFF88DEFF),
                 Color(settings?.customPressedText ?: 0xFF083D55),
             )
+            "SONIC" -> Palette(Color(0xFF0758D8), Color(0xFFFFD342), Color(0xFF123A75))
             "EMERALD" -> Palette(Color(0xFF087F4C), Color(0xFF86EFAC), Color(0xFF063D25))
             "FIRE" -> Palette(Color(0xFFB93820), Color(0xFFFFC38A), Color(0xFF57170B))
             "DARK" -> Palette(Color(0xFF262B36), Color(0xFF94A3B8), Color(0xFF101827))
@@ -72,6 +73,7 @@ class LemuroidPadTheme(
         val skinOptions =
             listOf(
                 "CLASSIC" to "KL Classic",
+                "SONIC" to "Sonic Edition • azul e anéis dourados",
                 "EMERALD" to "KL Emerald",
                 "FIRE" to "KL Fire",
                 "DARK" to "KL Dark",

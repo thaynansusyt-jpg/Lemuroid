@@ -123,9 +123,10 @@ private fun HomeScreen(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("KL • PLAY", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineLarge)
+                val sonicEdition = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlSonic()
+                Text(if (sonicEdition) "◎ KL PLAY · SONIC EDITION" else "KL • PLAY", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineLarge)
                 KlPointerToggle()
-                Text("Seu espaço para jogar.", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
+                Text(if (sonicEdition) "SEGA Edition • suas aventuras, seus anéis." else "Seu espaço para jogar.", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
                 Text(
                     "Abra um jogo para começar. Segure uma capa para personalizar. Crie sua skin no menu dos controles.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

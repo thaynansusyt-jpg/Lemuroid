@@ -22,8 +22,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     defaultConfig {
-        versionCode = 258
-        versionName = "0.5.0-plus.1" // Always remember to update Cores Tag!
+        versionCode = 259
+        versionName = "0.5.0s-plus.1" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
         buildConfigField("String", "KL_GOOGLE_CLIENT_ID", authLiteral("google.webClientId"))
         buildConfigField("String", "KL_GITHUB_CLIENT_ID", authLiteral("github.clientId"))

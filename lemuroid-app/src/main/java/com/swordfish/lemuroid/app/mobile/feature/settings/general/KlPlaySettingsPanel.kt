@@ -25,8 +25,10 @@ import kotlin.math.roundToInt
 
 @Composable
 fun KlPlaySettingsPanel() {
-    LemuroidCardSettingsGroup(title = { Text("Velocidade e desempenho KL") }) {
+    LemuroidCardSettingsGroup(title = { Text("SEGA Edition • aparência, telas e desempenho") }) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlEditionChoice()
+            com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlScreenOptions()
             KlFastForwardControl()
             Text("2x a 8x são velocidades solicitadas. A velocidade atingida depende do jogo e do celular.", style = MaterialTheme.typography.bodySmall)
             KlPlayToggle(KlPlaySettings.SIMPLE_FILTER, "Filtro leve", "Usa o filtro simples e desliga o efeito HD durante o jogo.")
