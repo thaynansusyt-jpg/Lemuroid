@@ -26,6 +26,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:name="com.swordfish.lemuroid.app.LemuroidApplication"
         android:allowBackup="true"
@@ -67,6 +73,11 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:process=":game"
             android:theme="@style/LemuroidMaterialTheme.Game" />
+
+        <service
+            android:name=".app.shared.multiplayer.KlRoomService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
 
         <service
             android:name=".app.mobile.feature.game.GameService"
