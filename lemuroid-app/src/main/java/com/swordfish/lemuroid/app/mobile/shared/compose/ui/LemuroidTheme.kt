@@ -1,100 +1,64 @@
 package com.swordfish.lemuroid.app.mobile.shared.compose.ui
 
-import android.os.Build
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-
-private val LightColorScheme =
-    lightColorScheme(
-        primary = md_theme_light_primary,
-        onPrimary = md_theme_light_onPrimary,
-        primaryContainer = md_theme_light_primaryContainer,
-        onPrimaryContainer = md_theme_light_onPrimaryContainer,
-        secondary = md_theme_light_secondary,
-        onSecondary = md_theme_light_onSecondary,
-        secondaryContainer = md_theme_light_secondaryContainer,
-        onSecondaryContainer = md_theme_light_onSecondaryContainer,
-        tertiary = md_theme_light_tertiary,
-        onTertiary = md_theme_light_onTertiary,
-        tertiaryContainer = md_theme_light_tertiaryContainer,
-        onTertiaryContainer = md_theme_light_onTertiaryContainer,
-        error = md_theme_light_error,
-        errorContainer = md_theme_light_errorContainer,
-        onError = md_theme_light_onError,
-        onErrorContainer = md_theme_light_onErrorContainer,
-        background = md_theme_light_background,
-        onBackground = md_theme_light_onBackground,
-        surface = md_theme_light_surface,
-        onSurface = md_theme_light_onSurface,
-        surfaceVariant = md_theme_light_surfaceVariant,
-        onSurfaceVariant = md_theme_light_onSurfaceVariant,
-        outline = md_theme_light_outline,
-        inverseOnSurface = md_theme_light_inverseOnSurface,
-        inverseSurface = md_theme_light_inverseSurface,
-        inversePrimary = md_theme_light_inversePrimary,
-        surfaceTint = md_theme_light_surfaceTint,
-        outlineVariant = md_theme_light_outlineVariant,
-        scrim = md_theme_light_scrim,
-    )
-
-private val DarkColorScheme =
-    darkColorScheme(
-        primary = md_theme_dark_primary,
-        onPrimary = md_theme_dark_onPrimary,
-        primaryContainer = md_theme_dark_primaryContainer,
-        onPrimaryContainer = md_theme_dark_onPrimaryContainer,
-        secondary = md_theme_dark_secondary,
-        onSecondary = md_theme_dark_onSecondary,
-        secondaryContainer = md_theme_dark_secondaryContainer,
-        onSecondaryContainer = md_theme_dark_onSecondaryContainer,
-        tertiary = md_theme_dark_tertiary,
-        onTertiary = md_theme_dark_onTertiary,
-        tertiaryContainer = md_theme_dark_tertiaryContainer,
-        onTertiaryContainer = md_theme_dark_onTertiaryContainer,
-        error = md_theme_dark_error,
-        errorContainer = md_theme_dark_errorContainer,
-        onError = md_theme_dark_onError,
-        onErrorContainer = md_theme_dark_onErrorContainer,
-        background = md_theme_dark_background,
-        onBackground = md_theme_dark_onBackground,
-        surface = md_theme_dark_surface,
-        onSurface = md_theme_dark_onSurface,
-        surfaceVariant = md_theme_dark_surfaceVariant,
-        onSurfaceVariant = md_theme_dark_onSurfaceVariant,
-        outline = md_theme_dark_outline,
-        inverseOnSurface = md_theme_dark_inverseOnSurface,
-        inverseSurface = md_theme_dark_inverseSurface,
-        inversePrimary = md_theme_dark_inversePrimary,
-        surfaceTint = md_theme_dark_surfaceTint,
-        outlineVariant = md_theme_dark_outlineVariant,
-        scrim = md_theme_dark_scrim,
-    )
+import androidx.compose.ui.unit.dp
 
 @Composable
-fun AppTheme(
-    darkTheme: Boolean = false,
-    content: @Composable () -> Unit,
-) {
-    // KL's console interface has a fixed palette, independent of wallpaper colors.
-    val colors = if (darkTheme) DarkColorScheme else lightColorScheme(
-        primary = androidx.compose.ui.graphics.Color(0xFF007AAE),
-        onPrimary = androidx.compose.ui.graphics.Color.White,
-        primaryContainer = androidx.compose.ui.graphics.Color(0xFFD6F2FF),
-        onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF163A50),
-        secondary = androidx.compose.ui.graphics.Color(0xFF477B94),
-        secondaryContainer = androidx.compose.ui.graphics.Color(0xFFE0F5FF),
-        background = androidx.compose.ui.graphics.Color(0xFFF0F7FA),
-        surface = androidx.compose.ui.graphics.Color(0xFFFCFEFF),
-        surfaceVariant = androidx.compose.ui.graphics.Color(0xFFE5EFF4),
-        onBackground = androidx.compose.ui.graphics.Color(0xFF163A50),
-        onSurface = androidx.compose.ui.graphics.Color(0xFF163A50),
-        onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF476579),
-        outline = androidx.compose.ui.graphics.Color(0xFF7496A8),
+private fun klDarkPreference(): Pair<Boolean, (Boolean) -> Unit> {
+    val context = LocalContext.current.applicationContext
+    val prefs = remember(context) { context.getSharedPreferences("kl_console_ui", Context.MODE_PRIVATE) }
+    var dark by remember(prefs) { mutableStateOf(prefs.getBoolean("dark_mode", false)) }
+    DisposableEffect(prefs) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { p, key ->
+            if (key == "dark_mode") dark = p.getBoolean(key, false)
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    return dark to { value: Boolean -> dark = value; prefs.edit().putBoolean("dark_mode", value).apply() }
+}
+
+@Composable
+fun KlDarkModeToggle() {
+    val (dark, update) = klDarkPreference()
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text("Modo escuro", style = MaterialTheme.typography.titleMedium)
+            Text("Tema KL noturno para biblioteca, menus e configurações.", style = MaterialTheme.typography.bodySmall)
+        }
+        Switch(checked = dark, onCheckedChange = update)
+    }
+}
+
+@Composable
+fun AppTheme(darkTheme: Boolean? = null, content: @Composable () -> Unit) {
+    val (savedDark, _) = klDarkPreference()
+    val colors = if (darkTheme ?: savedDark) darkColorScheme(
+        primary = Color(0xFF74D3FF), onPrimary = Color(0xFF00364F),
+        primaryContainer = Color(0xFF124563), onPrimaryContainer = Color(0xFFD6F2FF),
+        secondary = Color(0xFFAFD1E2), secondaryContainer = Color(0xFF263F50),
+        onSecondaryContainer = Color(0xFFDCEFFF),
+        background = Color(0xFF0D1720), onBackground = Color(0xFFE3EFF5),
+        surface = Color(0xFF14212C), onSurface = Color(0xFFE3EFF5),
+        surfaceVariant = Color(0xFF253543), onSurfaceVariant = Color(0xFFB7CDD9),
+        outline = Color(0xFF7D99AA), outlineVariant = Color(0xFF3B5160),
+    ) else lightColorScheme(
+        primary = Color(0xFF007AAE), onPrimary = Color.White,
+        primaryContainer = Color(0xFFD6F2FF), onPrimaryContainer = Color(0xFF163A50),
+        secondary = Color(0xFF477B94), secondaryContainer = Color(0xFFE0F5FF),
+        onSecondaryContainer = Color(0xFF163A50),
+        background = Color(0xFFF0F7FA), onBackground = Color(0xFF163A50),
+        surface = Color(0xFFFCFEFF), onSurface = Color(0xFF163A50),
+        surfaceVariant = Color(0xFFE5EFF4), onSurfaceVariant = Color(0xFF476579),
+        outline = Color(0xFF7496A8), outlineVariant = Color(0xFFC9DEE8),
     )
     MaterialTheme(colorScheme = colors) { content() }
 }

@@ -54,6 +54,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -285,18 +291,28 @@ private fun MenuEditTouchControls(
         return
     }
 
-    Dialog(onDismissRequest = { viewModel.showEditControls(false) }) {
+    Dialog(
+        onDismissRequest = { viewModel.showEditControls(false) },
+        properties = DialogProperties(dismissOnClickOutside = false),
+    ) {
         Card(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.9f),
         ) {
+            Column(Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Controles KL", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                    IconButton(onClick = { viewModel.showEditControls(false) }) {
+                        Icon(Icons.Default.Close, "Fechar controles")
+                    }
+                }
             Column(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight()
+                        .weight(1f, fill = false)
                         .verticalScroll(rememberScrollState())
                         .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -391,6 +407,7 @@ private fun MenuEditTouchControls(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -412,6 +429,9 @@ private fun MenuEditTouchControlRow(
             imageVector = icon,
             contentDescription = label,
         )
-        slider()
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label)
+            slider()
+        }
     }
 }

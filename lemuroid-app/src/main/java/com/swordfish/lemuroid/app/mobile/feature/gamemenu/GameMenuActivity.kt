@@ -86,6 +86,7 @@ class GameMenuActivity : RetrogradeComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setFinishOnTouchOutside(false)
 
         enableEdgeToEdge(
             SystemBarStyle.dark(Color.TRANSPARENT),

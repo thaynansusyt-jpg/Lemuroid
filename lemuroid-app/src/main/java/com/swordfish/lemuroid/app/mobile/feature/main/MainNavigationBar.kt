@@ -1,5 +1,7 @@
 package com.swordfish.lemuroid.app.mobile.feature.main
 
+import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -42,7 +44,7 @@ private fun LemuroidNavigationBar(
     NavigationBar(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(28.dp)),
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp,
     ) {
         MainNavigationRoutes.values().forEach { destination ->
@@ -59,9 +61,9 @@ private fun LemuroidNavigationBar(
                 label = { Text(stringResource(destination.titleId)) },
                 selected = isSelected,
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF007AAE),
-                    selectedTextColor = Color(0xFF007AAE),
-                    indicatorColor = Color(0xFFD6F2FF),
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
                 onClick = {
                     navController.navigate(destination.route.route) {

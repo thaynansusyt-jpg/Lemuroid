@@ -1,5 +1,7 @@
 package com.swordfish.touchinput.radial.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,9 +26,14 @@ fun LemuroidButtonForeground(
     icon: (@Composable BoxWithConstraintsScope.() -> Unit),
 ) {
     val theme = LocalLemuroidPadTheme.current
+    val pressScale = animateFloatAsState(if (pressed.value) theme.pressedScale else 1f, label = "KL button press")
 
     GlassSurface(
-        modifier = modifier.fillMaxSize().padding(theme.foregroundPadding),
+        modifier = modifier.fillMaxSize().padding(theme.foregroundPadding)
+            .graphicsLayer { scaleX = pressScale.value; scaleY = pressScale.value },
+        cornerRadius = theme.buttonCornerRadius,
+        outlineColor = theme.outlineColor,
+        outlineWidth = theme.outlineWidth,
         fillColor = theme.foregroundFill(pressed.value),
         shadowColor = theme.level3Shadow,
         shadowWidth = theme.level3ShadowWidth,
@@ -77,11 +84,12 @@ private fun BoxWithConstraintsScope.LemuroidButtonForegroundLabel(
     pressedState: State<Boolean>,
 ) {
     if (label == null) return
-    val fontSize = minOf(maxHeight * 0.5f * scale, maxWidth / label.length * scale)
+    val theme = LocalLemuroidPadTheme.current
+    val fontSize = minOf(maxHeight * 0.5f * scale * theme.labelScale, maxWidth / label.length * scale * theme.labelScale)
     Text(
         modifier = Modifier.wrapContentSize(),
         textAlign = TextAlign.Center,
-        fontWeight = FontWeight.Bold,
+        fontWeight = if (theme.boldLabels) FontWeight.Bold else FontWeight.Normal,
         fontFamily = LocalLemuroidPadTheme.current.fontFamily,
         text = label,
         color = LocalLemuroidPadTheme.current.icons(pressedState.value),

@@ -20,6 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.swordfish.lemuroid.app.shared.game.KlCheats
+import com.swordfish.lemuroid.app.shared.game.KlCheatFormats
+import com.swordfish.lemuroid.app.shared.game.KlCitraCheats
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.IconButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.swordfish.lemuroid.lib.library.db.entity.Game
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -56,7 +63,15 @@ fun GameMenuHomeScreen(
         KlCheatsDialog(game = gameMenuRequest.game, onClose = { showCheats = false })
     }
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        if (gameMenuRequest.game.systemId == "gba") {
+        val cheatCoreSupported = when (gameMenuRequest.game.systemId) {
+            "gba" -> gameMenuRequest.coreConfig.coreID.coreName == "mgba"
+            "gb", "gbc" -> gameMenuRequest.coreConfig.coreID.coreName == "gambatte"
+            "nds" -> gameMenuRequest.coreConfig.coreID.coreName in setOf("melonds", "desmume")
+            "n64" -> gameMenuRequest.coreConfig.coreID.coreName == "mupen64plus_next_gles3"
+            "3ds" -> gameMenuRequest.coreConfig.coreID.coreName == "citra"
+            else -> false
+        }
+        if (cheatCoreSupported) {
             LemuroidSettingsMenuLink(
                 title = { Text("Cheats KL") },
                 icon = {
@@ -238,6 +253,10 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
     var enabled by rememberSaveable { mutableStateOf(false) }
     var deletingId by rememberSaveable { mutableStateOf<String?>(null) }
     val loadFailed = loaded.isFailure
+    var savedTitleId by remember(game.fileUri) { mutableStateOf(KlCitraCheats.titleId(context, game)) }
+    var titleId by rememberSaveable(game.fileUri) { mutableStateOf(savedTitleId) }
+    val idReady = game.systemId != "3ds" ||
+        (KlCitraCheats.validTitleId(titleId.trim()) && titleId.trim().equals(savedTitleId, ignoreCase = true))
 
     fun persist(next: List<KlCheats.Entry>, afterSave: () -> Unit = {}) {
         if (busy || loadFailed) return
@@ -260,7 +279,15 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = { if (!busy) onClose() },
-        title = { Text("Cheats KL") },
+        properties = DialogProperties(dismissOnClickOutside = false),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Cheats KL", Modifier.weight(1f))
+                IconButton(enabled = !busy, onClick = onClose) {
+                    Icon(Icons.Default.Close, "Fechar cheats")
+                }
+            }
+        },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp)
@@ -268,8 +295,33 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(game.title)
-                Text("Cole códigos de GameShark, Action Replay ou CodeBreaker feitos para esta versão do jogo.")
-                Text("As mudanças serão aplicadas quando você fechar o menu e voltar ao jogo.")
+                Text(KlCheatFormats.hint(game.systemId))
+                Text("Use códigos feitos para a região e a versão exatas do seu jogo.")
+                Text(if (game.systemId == "3ds") "Depois de salvar, saia do jogo e abra-o novamente pela biblioteca. O botão Reiniciar não recarrega este arquivo." else "As mudanças serão aplicadas quando você fechar o menu e voltar ao jogo.")
+                if (game.systemId == "3ds") {
+                    OutlinedTextField(
+                        value = titleId, onValueChange = { titleId = it.take(16) },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !busy,
+                        label = { Text("Title ID do jogo 3DS") },
+                        supportingText = { Text("Detectado ao abrir .3ds/.cci/.cxi. Se estiver vazio, informe os 16 dígitos do ID do seu jogo.") },
+                        isError = titleId.isNotEmpty() && !KlCitraCheats.validTitleId(titleId.trim()),
+                    )
+                    if (!idReady) TextButton(
+                        enabled = !busy && !loadFailed && KlCitraCheats.validTitleId(titleId.trim()),
+                        onClick = {
+                            busy = true; error = null
+                            scope.launch {
+                                try {
+                                    withContext(Dispatchers.IO) { KlCitraCheats.storeTitleId(context, game, titleId) }
+                                    savedTitleId = titleId.trim().uppercase(java.util.Locale.ROOT)
+                                    titleId = savedTitleId
+                                } catch (exception: CancellationException) { throw exception }
+                                catch (exception: Exception) { error = exception.message }
+                                finally { busy = false }
+                            }
+                        },
+                    ) { Text("Salvar Title ID") }
+                }
                 if (loadFailed) {
                     Text("Não foi possível ler a lista salva. Feche e abra o menu novamente.")
                 } else if (cheats.isEmpty()) {
@@ -286,7 +338,7 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
                         Text(entry.name, modifier = Modifier.weight(1f))
                         Switch(
                             checked = entry.enabled,
-                            enabled = !busy && !loadFailed,
+                            enabled = !busy && !loadFailed && idReady,
                             onCheckedChange = { checked ->
                                 persist(cheats.map { if (it.id == entry.id) it.copy(enabled = checked) else it })
                             },
@@ -295,7 +347,7 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
                     Text(if (entry.enabled) "Ligado" else "Desligado")
                     Row {
                         TextButton(
-                            enabled = !busy && !loadFailed,
+                            enabled = !busy && !loadFailed && idReady,
                             onClick = {
                                 editingId = entry.id
                                 name = entry.name
@@ -306,7 +358,7 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
                             },
                         ) { Text("Editar") }
                         TextButton(
-                            enabled = !busy && !loadFailed,
+                            enabled = !busy && !loadFailed && idReady,
                             onClick = { deletingId = entry.id },
                         ) { Text("Excluir") }
                     }
@@ -318,7 +370,7 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
         },
         dismissButton = {
             TextButton(
-                enabled = !busy && !loadFailed && cheats.size < KlCheats.MAX_ENTRIES,
+                enabled = !busy && !loadFailed && idReady && cheats.size < KlCheats.MAX_ENTRIES,
                 onClick = {
                     editingId = null
                     name = ""
@@ -334,7 +386,13 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
     if (showEditor) {
         AlertDialog(
             onDismissRequest = { if (!busy) showEditor = false },
-            title = { Text(if (editingId == null) "Adicionar cheat" else "Editar cheat") },
+            properties = DialogProperties(dismissOnClickOutside = false),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (editingId == null) "Adicionar cheat" else "Editar cheat", Modifier.weight(1f))
+                    IconButton(enabled = !busy, onClick = { showEditor = false }) { Icon(Icons.Default.Close, "Fechar edição do cheat") }
+                }
+            },
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp)
@@ -372,7 +430,7 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
                     onClick = {
                         try {
                             require(name.isNotBlank()) { "Dê um nome para o cheat." }
-                            val normalized = KlCheats.normalizeCode(code)
+                            val normalized = KlCheats.normalizeCode(code, game.systemId)
                             val existing = cheats.firstOrNull { it.id == editingId }
                             val entry = existing?.copy(name = name.trim(), code = normalized, enabled = enabled)
                                 ?: KlCheats.Entry(name = name.trim(), code = normalized, enabled = enabled)
@@ -395,6 +453,7 @@ private fun KlCheatsDialog(game: Game, onClose: () -> Unit) {
     if (deleting != null) {
         AlertDialog(
             onDismissRequest = { if (!busy) deletingId = null },
+            properties = DialogProperties(dismissOnClickOutside = false),
             title = { Text("Excluir cheat?") },
             text = {
                 Column {

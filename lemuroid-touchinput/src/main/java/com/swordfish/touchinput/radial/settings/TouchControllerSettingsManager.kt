@@ -36,6 +36,16 @@ class TouchControllerSettingsManager(private val sharedPreferences: SharedPrefer
         val customPressedText: Long = 0xFF083D55,
         val customOpacity: Float = 0.8f,
         val customFont: String = "ROUNDED",
+        val customBase: String = "NORMAL",
+        val customBaseColor: Long = 0xFF168FC4,
+        val customBaseOpacity: Float = 0.12f,
+        val customCornerRadius: Float = 36f,
+        val customOutline: Long = 0xFFFFFFFF,
+        val customOutlineWidth: Float = 0f,
+        val customLabelScale: Float = 1f,
+        val customBold: Boolean = true,
+        val customShadow: Boolean = true,
+        val customPressScale: Float = 1f,
     )
 
     private fun computeInsetsPaddings(

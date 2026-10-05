@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.ceil
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 private object ShadowCache {
     private val bitmapCache = mutableMapOf<String, ImageBitmap>()
@@ -66,6 +67,8 @@ fun GlassSurface(
     fillColor: Color = Color.White.copy(alpha = 0.15f),
     shadowColor: Color = Color.Black.copy(alpha = 0.3f),
     shadowWidth: Dp = 1.dp,
+    outlineColor: Color = Color.Transparent,
+    outlineWidth: Dp = 0.dp,
     content: @Composable BoxWithConstraintsScope.() -> Unit = { },
 ) {
     BoxWithConstraints(
@@ -118,6 +121,16 @@ fun GlassSurface(
                         cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
                     )
 
+                    val border = outlineWidth.toPx().coerceAtMost(expandedSize.minDimension / 2f)
+                    if (border > 0f && outlineColor.alpha > 0f) {
+                        drawRoundRect(
+                            color = outlineColor,
+                            topLeft = Offset(border / 2f, border / 2f),
+                            size = Size(expandedSize.width - border, expandedSize.height - border),
+                            cornerRadius = CornerRadius((cornerRadiusPx - border / 2f).coerceAtLeast(0f)),
+                            style = Stroke(width = border),
+                        )
+                    }
                     drawContent()
                 }
             },

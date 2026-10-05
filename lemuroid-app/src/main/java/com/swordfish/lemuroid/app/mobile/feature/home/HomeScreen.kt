@@ -117,18 +117,18 @@ private fun HomeScreen(
         ElevatedCard(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFFE0F5FF)),
+            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("KL • PLAY", color = Color(0xFF007AAE), style = MaterialTheme.typography.headlineLarge)
+                Text("KL • PLAY", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineLarge)
                 KlPointerToggle()
-                Text("Seu espaço para jogar.", color = Color(0xFF163A50), style = MaterialTheme.typography.titleMedium)
+                Text("Seu espaço para jogar.", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
                 Text(
                     "Abra um jogo para começar. Segure uma capa para personalizar. Crie sua skin no menu dos controles.",
-                    color = Color(0xFF476579),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }

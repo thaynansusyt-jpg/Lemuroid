@@ -11,6 +11,8 @@ import com.swordfish.lemuroid.R
 import com.swordfish.lemuroid.app.mobile.feature.settings.SettingsManager
 import com.swordfish.lemuroid.app.shared.game.ShaderChooser
 import com.swordfish.lemuroid.app.shared.game.KlCheats
+import com.swordfish.lemuroid.app.shared.game.KlCheatFormats
+import com.swordfish.lemuroid.app.shared.game.KlCitraCheats
 import com.swordfish.libretrodroid.LibretroDroid
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
@@ -138,6 +140,16 @@ class GameViewModelRetroGameView(
             .collect { loadingState ->
                 gameState.value =
                     if (loadingState is GameLoader.LoadingState.Ready) {
+                        if (game.systemId == "3ds") {
+                            try {
+                                withContext(Dispatchers.IO) { KlCitraCheats.prepare(appContext, loadingState.gameData) }
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (error: Exception) {
+                                Timber.e(error, "Could not prepare native 3DS cheats")
+                                sideEffects.showToast(error.message ?: "Não foi possível preparar os cheats 3DS.")
+                            }
+                        }
                         Timber.i("Setting state to loaded")
                         val retroViewData =
                             buildRetroViewData(
@@ -311,7 +323,15 @@ class GameViewModelRetroGameView(
         try {
             val view = retroGameViewFlow()
             val game = loadedGame ?: return
-            if (game.systemId != "gba") return
+            if (game.systemId == "3ds" || !KlCheatFormats.supports(game.systemId)) return
+            val supportedCore = when (game.systemId) {
+                "gba" -> systemCoreConfig.coreID.coreName == "mgba"
+                "gb", "gbc" -> systemCoreConfig.coreID.coreName == "gambatte"
+                "nds" -> systemCoreConfig.coreID.coreName in setOf("melonds", "desmume")
+                "n64" -> systemCoreConfig.coreID.coreName == "mupen64plus_next_gles3"
+                else -> false
+            }
+            if (!supportedCore) return
             // The core must have loaded the ROM before receiving native cheat calls.
             view.getGLRetroEvents()
                 .filterIsInstance<GLRetroView.GLRetroEvents.FrameRendered>()
@@ -324,8 +344,8 @@ class GameViewModelRetroGameView(
                 try {
                     // mGBA ignores the enabled flag and index. Reset then add enabled entries only.
                     LibretroDroid.resetCheat()
-                    enabledCheats.forEachIndexed { index, entry ->
-                        LibretroDroid.setCheat(index, true, KlCheats.coreCode(entry))
+                    KlCheatFormats.coreCodes(game.systemId, enabledCheats.map { it.code }).forEachIndexed { index, code ->
+                        LibretroDroid.setCheat(index, true, code)
                     }
                     completed.complete(Unit)
                 } catch (error: Exception) {

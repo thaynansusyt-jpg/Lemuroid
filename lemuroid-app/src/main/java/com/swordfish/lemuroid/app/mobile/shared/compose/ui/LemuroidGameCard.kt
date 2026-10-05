@@ -36,7 +36,7 @@ fun LemuroidGameCard(
     ElevatedCard(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().combinedClickable(
@@ -63,7 +63,7 @@ fun LemuroidGameCard(
             Text(
                 text = game.title,
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp),
-                color = Color(0xFF163A50),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
                 minLines = 2,
@@ -72,7 +72,7 @@ fun LemuroidGameCard(
             Text(
                 text = game.systemId.uppercase(),
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 12.dp),
-                color = Color(0xFF007AAE),
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelSmall,
             )
         }
