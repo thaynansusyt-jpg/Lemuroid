@@ -270,7 +270,7 @@ class BaseGameScreenViewModel(
     fun toggleFastForward() {
         Timber.d("Loading quick save")
         retroGameView.retroGameView?.apply {
-            frameSpeed = if (frameSpeed == 1) 2 else 1
+            frameSpeed = if (frameSpeed == 1) KlPlaySettings.speed(appContext) else 1
         }
     }
 
