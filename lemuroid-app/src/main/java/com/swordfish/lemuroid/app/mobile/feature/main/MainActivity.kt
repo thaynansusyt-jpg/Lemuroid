@@ -142,6 +142,13 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
                     mutableStateOf(false)
                 }
 
+            LaunchedEffect(navController) {
+                if (intent.getBooleanExtra("kl_open_multiplayer", false)) {
+                    navController.navigateToRoute(MainRoute.MULTIPLAYER)
+                    intent.removeExtra("kl_open_multiplayer")
+                }
+            }
+
             LaunchedEffect(currentRoute) {
                 mainViewModel.changeRoute(currentRoute)
             }
@@ -206,6 +213,9 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
                             onGameLongClick = onGameLongClick,
                             onOpenCoreSelection = { navController.navigateToRoute(MainRoute.SETTINGS_CORES_SELECTION) },
                         )
+                    }
+                    composable(MainRoute.MULTIPLAYER) {
+                        com.swordfish.lemuroid.app.mobile.feature.multiplayer.KlMultiplayerScreen(Modifier.padding(padding))
                     }
                     composable(MainRoute.FAVORITES) {
                         FavoritesScreen(
