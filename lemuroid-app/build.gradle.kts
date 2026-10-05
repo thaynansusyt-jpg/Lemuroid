@@ -10,8 +10,8 @@ plugins {
 
 android {
     defaultConfig {
-        versionCode = 254
-        versionName = "0.2.0-beta.1" // Always remember to update Cores Tag!
+        versionCode = 255
+        versionName = "0.3.0-beta.1" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
     }
     flavorDimensions += listOf("opensource", "cores")
