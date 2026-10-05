@@ -6,22 +6,21 @@ Emulador para Android e fork independente do [Lemuroid](https://github.com/Sword
 
 [Site e download](https://kl-gba-play.emilysousa65477.chatgpt.site) · [Releases](https://github.com/thaynansusyt-jpg/Lemuroid/releases) · [Relatar um problema](https://github.com/thaynansusyt-jpg/Lemuroid/issues)
 
-## Versões
+## Versão atual
 
-- **0.5.0-rc.1**: primeira candidata pública, com biblioteca/capas, skins, temas, perfil, Sii e diário local. Google e GitHub ainda não estão configurados.
-- **0.5.0 Plus (0.5.0-plus.1)**: candidata de manutenção. Corrige limites do áudio durante avanço rápido e o estado de carregamento, reduz uploads de imagem repetidos e adiciona conta KL, backup do perfil e conjunto Sii+.
+**0.5.0s Plus — SEGA Edition (0.5.0s-plus.1)**: UI Wii U ou Sonic Edition, skin azul Sonic, tela cheia, presets maiores para DS/3DS e 128 conquistas KL com recompensas para o Sii. A primeira conquista libera Sonic; a centésima, Super Sonic. Mantém conta KL e correções Plus. As Releases anteriores foram substituídas por esta edição.
 
-As versões são de teste. Compatibilidade e desempenho dependem do aparelho, do jogo e do núcleo; não há promessa de 8x ou 60 FPS universais.
+Esta é uma candidata para testes no aparelho. Compatibilidade e desempenho dependem do aparelho, do jogo e do núcleo; não há promessa de 8x ou 60 FPS universais.
 
 ## Instalação e atualização
 
-Baixe **somente o APK** da versão desejada. Instale a Plus por cima do KL Play atual para manter dados. O pacote permanece `com.klgames.klgba`, com a mesma chave de assinatura e versionCode crescente. Antes de desinstalar um app Dev separado, exporte os saves e teste sua importação. Não distribua ROMs ou BIOS.
+Baixe **somente o APK** da versão desejada. Instale a SEGA Edition por cima do KL Play atual para manter dados. O pacote permanece `com.klgames.klgba`, com a mesma chave de assinatura e versionCode crescente. Antes de desinstalar um app Dev separado, exporte os saves e teste sua importação. Não distribua ROMs ou BIOS.
 
 ## Conta KL e backup
 
 Crie a conta em [Conta KL](https://kl-gba-play.emilysousa65477.chatgpt.site/conta.html), guarde o usuário e a senha gerados e entre em Perfil no aplicativo Plus. A conta autentica acesso ao servidor, não identidade civil/e-mail. O conjunto Sii+ é desbloqueado no editor, em Conjuntos.
 
-O backup salva **nome, Sii, diário e estatísticas**. Não inclui saves de jogos, ROMs, capas, skins ou configurações. O app tenta enviar ao pausar uma partida; use **Salvar perfil no site** e confira o último envio confirmado. Jogar funciona offline. Conflitos preservam o perfil local e exigem restauração explícita; não há mesclagem automática. Sem usuário/senha guardados, não existe recuperação de acesso nesta versão. Exclusão da conta e do backup é possível no site e no aplicativo.
+O backup salva **nome, Sii, conquistas, diário e estatísticas**. Não inclui saves de jogos, ROMs, capas, skins ou configurações. O app tenta enviar ao pausar uma partida; use **Salvar perfil no site** e confira o último envio confirmado. Jogar funciona offline. Conflitos preservam o perfil local e exigem restauração explícita; não há mesclagem automática. Sem usuário/senha guardados, não existe recuperação de acesso nesta versão. Exclusão da conta e do backup é possível no site e no aplicativo.
 
 ## Multiplayer experimental
 
@@ -43,6 +42,6 @@ A rotina completa, incluindo o núcleo cabo GBA, está em `.github/workflows/bui
 
 ## Créditos e licença
 
-Lemuroid e LibretroDroid: Filippo Scognamiglio / Swordfish90 e colaboradores. Núcleos libretro e bibliotecas: seus respectivos autores. Cabo GBA experimental: Aelvryx/mgba-wifi-link (commit fixado na rotina de build). KL Play é um fork independente, sem vínculo oficial com Nintendo ou os autores dos jogos.
+Lemuroid e LibretroDroid: Filippo Scognamiglio / Swordfish90 e colaboradores. Núcleos libretro e bibliotecas: seus respectivos autores. Cabo GBA experimental: Aelvryx/mgba-wifi-link (commit fixado na rotina de build). KL Play é um fork independente, sem vínculo oficial com SEGA, Nintendo ou os autores dos jogos.
 
 Preserve a [licença GPL-3.0](COPYING) e as licenças dos componentes, presentes no projeto e nos submódulos. O código de cada APK é identificado na release e em `FONTE.txt`. Os patches do runtime estão em `tools/kl-runtime`, junto aos testes de limites de áudio. As imagens de jogos no site demonstram a interface; o aplicativo não contém jogos.
