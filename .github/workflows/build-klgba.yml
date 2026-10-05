@@ -2,6 +2,8 @@ name: Build KL GBA Beta
 
 on:
   workflow_dispatch:
+  push:
+    branches: [dev]
 
 permissions:
   contents: read
