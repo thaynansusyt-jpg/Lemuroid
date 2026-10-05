@@ -364,6 +364,9 @@ abstract class BaseGameActivity : ImmersiveActivity() {
     ) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == DIALOG_REQUEST) {
+            baseGameScreenViewModel.retroGameView.retroGameView?.apply {
+                if (frameSpeed > 1) frameSpeed = KlPlaySettings.speed(this@BaseGameActivity)
+            }
             Timber.i("Game menu dialog response: ${data?.extras.dump()}")
             if (data?.getBooleanExtra(GameMenuContract.RESULT_RESET, false) == true) {
                 GlobalScope.launch {
@@ -403,7 +406,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
                             GameMenuContract.RESULT_ENABLE_FAST_FORWARD,
                             false,
                         )
-                    this.frameSpeed = if (fastForwardEnabled) 2 else 1
+                    this.frameSpeed = if (fastForwardEnabled) KlPlaySettings.speed(this@BaseGameActivity) else 1
                 }
             }
             if (data?.getBooleanExtra(GameMenuContract.RESULT_EDIT_TOUCH_CONTROLS, false) == true) {
