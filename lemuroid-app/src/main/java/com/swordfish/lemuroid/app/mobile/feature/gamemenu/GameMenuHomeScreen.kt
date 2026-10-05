@@ -1,6 +1,7 @@
 package com.swordfish.lemuroid.app.mobile.feature.gamemenu
 
 import android.content.Intent
+import com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,6 +64,7 @@ fun GameMenuHomeScreen(
         KlCheatsDialog(game = gameMenuRequest.game, onClose = { showCheats = false })
     }
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        if (KlLinkSession.active) Text("Cabo Wi-Fi experimental: mantenha os dois jogos abertos. Cheats, estados e aceleração ficam desativados nesta sessão.")
         val cheatCoreSupported = when (gameMenuRequest.game.systemId) {
             "gba" -> gameMenuRequest.coreConfig.coreID.coreName == "mgba"
             "gb", "gbc" -> gameMenuRequest.coreConfig.coreID.coreName == "gambatte"
@@ -71,7 +73,7 @@ fun GameMenuHomeScreen(
             "3ds" -> gameMenuRequest.coreConfig.coreID.coreName == "citra"
             else -> false
         }
-        if (cheatCoreSupported) {
+        if (cheatCoreSupported && !KlLinkSession.active) {
             LemuroidSettingsMenuLink(
                 title = { Text("Cheats KL") },
                 icon = {
@@ -117,7 +119,7 @@ fun GameMenuHomeScreen(
             },
         )
 
-        LemuroidSettingsMenuLink(
+        if (!KlLinkSession.active) LemuroidSettingsMenuLink(
             title = { Text(text = stringResource(id = R.string.game_menu_restart)) },
             icon = {
                 Icon(

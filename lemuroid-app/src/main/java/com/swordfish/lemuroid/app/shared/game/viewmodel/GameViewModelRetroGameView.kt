@@ -1,6 +1,7 @@
 package com.swordfish.lemuroid.app.shared.game.viewmodel
 
 import android.content.Context
+import com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -236,7 +237,7 @@ class GameViewModelRetroGameView(
         enableImmersiveMode: Boolean,
     ): GLRetroViewData {
         return GLRetroViewData(appContext).apply {
-            coreFilePath = gameData.coreLibrary
+            coreFilePath = KlLinkSession.prepare(appContext, gameData)
 
             when (val gameFiles = gameData.gameFiles) {
                 is RomFiles.Standard -> {
@@ -322,6 +323,7 @@ class GameViewModelRetroGameView(
 
     private suspend fun initializeCheats() {
         try {
+            if (KlLinkSession.active) return
             val view = retroGameViewFlow()
             val game = loadedGame ?: return
             if (game.systemId == "3ds" || !KlCheatFormats.supports(game.systemId)) return
@@ -387,6 +389,7 @@ class GameViewModelRetroGameView(
     }
 
     private fun updateCoreVariables(options: List<CoreVariable>) {
+        if (KlLinkSession.active) return
         val updatedVariables =
             KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, options).map { Variable(it.key, it.value) }
                 .toTypedArray()

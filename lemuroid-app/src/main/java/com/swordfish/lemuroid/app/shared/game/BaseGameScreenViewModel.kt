@@ -1,6 +1,7 @@
 package com.swordfish.lemuroid.app.shared.game
 
 import android.content.Context
+import com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession
 import android.content.SharedPreferences
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -238,6 +239,7 @@ class BaseGameScreenViewModel(
     }
 
     suspend fun saveSlot(index: Int) {
+        if (KlLinkSession.active) return
         if (loadingState.value) return
         withLoading {
             saves.saveSlot(index)
@@ -245,6 +247,7 @@ class BaseGameScreenViewModel(
     }
 
     suspend fun loadSlot(index: Int) {
+        if (KlLinkSession.active) return
         if (loadingState.value) return
         withLoading {
             saves.loadSlot(index)
@@ -252,6 +255,7 @@ class BaseGameScreenViewModel(
     }
 
     fun saveQuickSave() {
+        if (KlLinkSession.active) return
         Timber.d("Saving quick save")
         if (loadingState.value) return
         withLoading {
@@ -260,6 +264,7 @@ class BaseGameScreenViewModel(
     }
 
     fun loadQuickSave() {
+        if (KlLinkSession.active) return
         Timber.d("Loading quick save")
         if (loadingState.value) return
         withLoading {
@@ -268,6 +273,7 @@ class BaseGameScreenViewModel(
     }
 
     fun toggleFastForward() {
+        if (KlLinkSession.active) return
         Timber.d("Loading quick save")
         retroGameView.retroGameView?.apply {
             frameSpeed = if (frameSpeed == 1) KlPlaySettings.speed(appContext) else 1
@@ -276,6 +282,7 @@ class BaseGameScreenViewModel(
 
     suspend fun reset() =
         withLoading {
+            if (KlLinkSession.active) return@withLoading
             try {
                 delay(appContext.longAnimationDuration().toLong())
                 retroGameView.retroGameViewFlow().reset()

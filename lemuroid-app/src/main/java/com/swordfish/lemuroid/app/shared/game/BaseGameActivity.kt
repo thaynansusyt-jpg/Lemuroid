@@ -1,5 +1,6 @@
 package com.swordfish.lemuroid.app.shared.game
 
+import com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
@@ -90,6 +91,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
     private var finishTriggered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        KlLinkSession.readIntent(intent)
         super.onCreate(savedInstanceState)
         setUpExceptionsHandler()
         GameService.startService(applicationContext, intent)
@@ -209,7 +211,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
                     GameMenuContract.EXTRA_AUDIO_ENABLED,
                     baseGameScreenViewModel.retroGameView.retroGameView?.audioEnabled,
                 )
-                this.putExtra(GameMenuContract.EXTRA_FAST_FORWARD_SUPPORTED, system.fastForwardSupport)
+                this.putExtra(GameMenuContract.EXTRA_FAST_FORWARD_SUPPORTED, system.fastForwardSupport && !KlLinkSession.active)
                 this.putExtra(
                     GameMenuContract.EXTRA_FAST_FORWARD,
                     (baseGameScreenViewModel.retroGameView.retroGameView?.frameSpeed ?: 1) > 1,
@@ -365,7 +367,8 @@ abstract class BaseGameActivity : ImmersiveActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == DIALOG_REQUEST) {
             baseGameScreenViewModel.retroGameView.retroGameView?.apply {
-                if (frameSpeed > 1) frameSpeed = KlPlaySettings.speed(this@BaseGameActivity)
+                if (KlLinkSession.active) frameSpeed = 1
+                else if (frameSpeed > 1) frameSpeed = KlPlaySettings.speed(this@BaseGameActivity)
             }
             Timber.i("Game menu dialog response: ${data?.extras.dump()}")
             if (data?.getBooleanExtra(GameMenuContract.RESULT_RESET, false) == true) {
@@ -406,7 +409,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
                             GameMenuContract.RESULT_ENABLE_FAST_FORWARD,
                             false,
                         )
-                    this.frameSpeed = if (fastForwardEnabled) KlPlaySettings.speed(this@BaseGameActivity) else 1
+                    this.frameSpeed = if (fastForwardEnabled && !KlLinkSession.active) KlPlaySettings.speed(this@BaseGameActivity) else 1
                 }
             }
             if (data?.getBooleanExtra(GameMenuContract.RESULT_EDIT_TOUCH_CONTROLS, false) == true) {
@@ -442,6 +445,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
             game: Game,
             loadSave: Boolean,
             useLeanback: Boolean,
+            link: KlLinkSession.Launch? = null,
         ) {
             val gameActivity =
                 if (useLeanback) {
@@ -451,6 +455,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
                 }
             activity.startActivityForResult(
                 Intent(activity, gameActivity).apply {
+                    putExtra(KlLinkSession.EXTRA, link)
                     putExtra(EXTRA_GAME, game)
                     putExtra(EXTRA_LOAD_SAVE, loadSave)
                     putExtra(EXTRA_LEANBACK, useLeanback)

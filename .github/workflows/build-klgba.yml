@@ -1,4 +1,4 @@
-name: Build KL GBA Beta
+name: Build KL Play Beta
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,6 +34,49 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools"
 
       - uses: gradle/actions/setup-gradle@v4
+
+      - name: Check out pinned experimental GBA cable core
+        uses: actions/checkout@v4
+        with:
+          repository: Aelvryx/mgba-wifi-link
+          ref: 9e919b0cfbb93af7d1171570dfc6745d00eeebab
+          path: kl-link-source
+
+      - name: Verify real GBA cable and TCP boundaries
+        run: |
+          python3 tools/kl-link/prepare-core.py kl-link-source
+          cmake -S kl-link-source -B kl-link-host -G Ninja \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_QT=OFF -DBUILD_SDL=OFF -DBUILD_LIBRETRO=ON \
+            -DBUILD_TEST=OFF -DBUILD_SUITE=OFF -DBUILD_CINEMA=OFF \
+            -DBUILD_HEADLESS=OFF -DBUILD_EXAMPLE=OFF -DBUILD_LTO=OFF \
+            -DUSE_FFMPEG=OFF -DUSE_LUA=OFF -DENABLE_SCRIPTING=OFF -DUSE_DISCORD_RPC=OFF
+          cmake --build kl-link-host --parallel 2 --target mgba_libretro
+          gcc -O2 -I kl-link-source/src/platform/libretro -I tools/kl-link \
+            tools/kl-link/test-transport.c -o kl-transport-test
+          ./kl-transport-test
+          gcc -O2 -I kl-link-source/src/platform/libretro tools/kl-link/test-lan.c -ldl -o kl-lan-test
+          python3 tools/kl-link/test-lan.py kl-link-host/mgba_libretro.so \
+            kl-link-source/tools/gba-link-test-rom/fixtures/gba-link-continuous.gba ./kl-lan-test
+
+      - name: Build dedicated Android ARM64 cable core
+        env:
+          PKG_CONFIG_LIBDIR: /tmp/kl-empty-pkgconfig
+          PKG_CONFIG_PATH: ""
+        run: |
+          sdkmanager "ndk;27.2.12479018"
+          mkdir -p "$PKG_CONFIG_LIBDIR"
+          cmake -S kl-link-source -B kl-link-android -G Ninja \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/27.2.12479018/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21 \
+            -DBUILD_QT=OFF -DBUILD_SDL=OFF -DBUILD_LIBRETRO=ON \
+            -DBUILD_TEST=OFF -DBUILD_SUITE=OFF -DBUILD_CINEMA=OFF \
+            -DBUILD_HEADLESS=OFF -DBUILD_EXAMPLE=OFF -DBUILD_LTO=OFF
+          cmake --build kl-link-android --parallel 2 --target mgba_libretro
+          mkdir -p lemuroid-app/src/main/jniLibs/arm64-v8a
+          cp kl-link-android/mgba_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_mgba_link.so
+          printf '%s\n' 'mGBA Wi-Fi Link: Aelvryx/mgba-wifi-link@9e919b0cfbb93af7d1171570dfc6745d00eeebab' > "$RUNNER_TEMP/kl-link-source.txt"
 
       - name: Ler versao do aplicativo
         id: version
@@ -95,25 +138,27 @@ jobs:
           test "${#apks[@]}" -eq 1
           test -f "${apks[0]}"
           mkdir -p public-apk
-          cp "${apks[0]}" "public-apk/KL-GBA-$KL_VERSION.apk"
-          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify "public-apk/KL-GBA-$KL_VERSION.apk"
-          "$ANDROID_HOME/build-tools/34.0.0/aapt" dump badging "public-apk/KL-GBA-$KL_VERSION.apk" > "$RUNNER_TEMP/kl-badging.txt"
+          cp "${apks[0]}" "public-apk/KL-Play-$KL_VERSION.apk"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify "public-apk/KL-Play-$KL_VERSION.apk"
+          "$ANDROID_HOME/build-tools/34.0.0/aapt" dump badging "public-apk/KL-Play-$KL_VERSION.apk" > "$RUNNER_TEMP/kl-badging.txt"
           python - <<'PYCODE'
           import os
           from pathlib import Path
           output = (Path(os.environ["RUNNER_TEMP"]) / "kl-badging.txt").read_text()
-          checks = ["package: name='com.klgames.klgba'", "versionCode='" + os.environ["KL_VERSION_CODE"] + "'", "versionName='" + os.environ["KL_VERSION"] + "'"]
+          checks = ["package: name='com.klgames.klgba'", "versionCode='" + os.environ["KL_VERSION_CODE"] + "'", "versionName='" + os.environ["KL_VERSION"] + "'", "application-label:'KL Play'"]
           if not all(value in output for value in checks):
               raise SystemExit("O APK nao tem o pacote ou a versao esperados.")
           PYCODE
           printf 'https://github.com/%s/commit/%s\n' "$GITHUB_REPOSITORY" "$GITHUB_SHA" > public-apk/FONTE.txt
+          cat "$RUNNER_TEMP/kl-link-source.txt" >> public-apk/FONTE.txt
+          unzip -l "public-apk/KL-Play-$KL_VERSION.apk" | grep 'lib/arm64-v8a/libkl_mgba_link.so'
           cd public-apk
-          sha256sum "KL-GBA-$KL_VERSION.apk" > SHA256SUMS.txt
+          sha256sum "KL-Play-$KL_VERSION.apk" > SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         if: ${{ always() && steps.package.outcome == 'success' }}
         with:
-          name: KL-GBA-${{ steps.version.outputs.version }}
+          name: KL-Play-${{ steps.version.outputs.version }}
           path: public-apk/*
           if-no-files-found: error
           retention-days: 14

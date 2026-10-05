@@ -12,6 +12,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +37,7 @@ fun KlMultiplayerScreen(modifier: Modifier = Modifier) {
     val prefs = remember { context.getSharedPreferences("kl_room_ui", 0) }
     var name by rememberSaveable { mutableStateOf(prefs.getString("name", "Jogador").orEmpty()) }
     var ip by rememberSaveable { mutableStateOf(prefs.getString("ip", "").orEmpty()) }
+    var cable by rememberSaveable { mutableStateOf(prefs.getBoolean("cable", false)) }
     var error by remember { mutableStateOf<String?>(null) }
     val connected = state.phase == KlWifiRoom.Phase.HOSTING || state.phase == KlWifiRoom.Phase.JOINED
     val connecting = state.phase == KlWifiRoom.Phase.CONNECTING
@@ -48,12 +50,22 @@ fun KlMultiplayerScreen(modifier: Modifier = Modifier) {
             .onFailure { error = "Não foi possível manter a sala aberta: ${it.message}" }
     }
     Column(modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("KL • Conexão", style = MaterialTheme.typography.headlineMedium)
+        Text("KL Play • Conexão", style = MaterialTheme.typography.headlineMedium)
         Text("Uma área só para jogar junto. Conecte os celulares à mesma rede Wi-Fi ou ao ponto de acesso de um deles.")
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Salas Wi-Fi • até 3 pessoas", style = MaterialTheme.typography.titleLarge)
-                Text("Nesta versão, a sala conecta os participantes e testa a estabilidade da rede. Batalhas, trocas e a comunicação entre jogos ainda não estão disponíveis.")
+                Text("Cabo GBA experimental • 2 jogadores • Android de 64 bits. A sala ainda comporta 3 pessoas, mas o cabo funciona com apenas 2.")
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("Usar cabo Wi-Fi nos jogos de GBA", modifier = Modifier.weight(1f))
+                    Switch(checked = cable, onCheckedChange = {
+                        cable = it
+                        prefs.edit().putBoolean("cable", it).apply()
+                    })
+                }
+                Text("1. Crie a sala e conecte o segundo celular.\n2. Ative o cabo nos dois aparelhos.\n3. Na biblioteca, abram a mesma ROM de GBA.\n4. Esperem a confirmação de sincronização e escolham a opção multiplayer dentro do jogo.")
+                Text("O primeiro teste é de cabo Multi-Pak: Mario Kart: Super Circuit é um bom ponto de partida. Pokémon ainda precisa de teste de troca e batalha; adaptador sem fio não está incluído. DS, 3DS e outros sistemas continuam singleplayer.")
+                Text("Mantenha os dois jogos abertos; abrir menus ou apagar a tela pode interromper o cabo. Uma cópia do save anterior é guardada automaticamente. Estados automáticos, cheats e fast forward ficam desativados nesta sessão. Os saves feitos dentro do jogo continuam separados por aparelho.")
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }

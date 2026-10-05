@@ -7,6 +7,7 @@ import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.UUID
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -21,7 +22,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * LAN room connection only. No emulated link traffic is attached yet.
+ * LAN lobby. The dedicated native cable uses a separate, authenticated socket.
  * The host counts as one of the three participants.
  */
 class KlWifiRoom(private val port: Int = 55342) {
@@ -32,6 +33,7 @@ class KlWifiRoom(private val port: Int = 55342) {
         val addresses: List<String> = emptyList(),
         val members: List<Member> = emptyList(),
         val message: String = "",
+        val linkKey: String = "",
     )
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -51,6 +53,7 @@ class KlWifiRoom(private val port: Int = 55342) {
     }
 
     private class Session(val hostName: String) {
+        var linkKey: String = UUID.randomUUID().toString().replace("-", "")
         @Volatile var closed = false
         @Volatile var server: ServerSocket? = null
         val sockets = ConcurrentHashMap.newKeySet<Socket>()
@@ -109,6 +112,7 @@ class KlWifiRoom(private val port: Int = 55342) {
             s.peers.entries.sortedBy { it.key }.map { Member(it.key, it.value.name) }
         changes.value = State(
             phase = Phase.HOSTING,
+            linkKey = s.linkKey,
             addresses = localAddresses(),
             members = members,
             message = "Sala aberta — ${members.size}/3 jogadores",
@@ -142,7 +146,7 @@ class KlWifiRoom(private val port: Int = 55342) {
                     visitor.write { writeInt(REJECTED); writeUTF("Sala cheia: o limite é de 3 jogadores.") }
                     return
                 }
-                visitor.write { writeInt(WELCOME); writeInt(id) }
+                visitor.write { writeInt(WELCOME); writeInt(id); writeUTF(s.linkKey) }
                 s.peers[id] = visitor
                 socket.soTimeout = 30000
                 publishRoster(s)
@@ -189,7 +193,11 @@ class KlWifiRoom(private val port: Int = 55342) {
                         fail(s, peer.input.readUTF())
                         return@launch
                     }
-                    WELCOME -> require(peer.input.readInt() in 1..2)
+                    WELCOME -> {
+                        require(peer.input.readInt() in 1..2)
+                        s.linkKey = peer.input.readUTF()
+                        require(s.linkKey.matches(Regex("[0-9a-f]{32}")))
+                    }
                     else -> error("Unexpected handshake")
                 }
                 val heartbeat = scope.launch {
@@ -218,6 +226,7 @@ class KlWifiRoom(private val port: Int = 55342) {
                                 require(members.map { it.id }.distinct().size == count && members.first().id == 0)
                                 if (active(s)) changes.value = State(
                                     phase = Phase.JOINED,
+                                    linkKey = s.linkKey,
                                     addresses = listOf(cleanAddress),
                                     members = members,
                                     message = "Você entrou — $count/3 jogadores",
@@ -272,7 +281,7 @@ class KlWifiRoom(private val port: Int = 55342) {
         }
 
         const val MAGIC = 0x4B4C5746
-        const val VERSION = 1
+        const val VERSION = 2
         const val WELCOME = 1
         const val REJECTED = 2
         const val ROSTER = 3

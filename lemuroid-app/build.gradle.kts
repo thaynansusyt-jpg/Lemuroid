@@ -10,8 +10,8 @@ plugins {
 
 android {
     defaultConfig {
-        versionCode = 255
-        versionName = "0.3.0-beta.1" // Always remember to update Cores Tag!
+        versionCode = 256
+        versionName = "0.4.0-beta.1" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
     }
     flavorDimensions += listOf("opensource", "cores")
@@ -96,12 +96,12 @@ android {
             isMinifyEnabled = true
             signingConfig = signingConfigs["release"]
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-            resValue("string", "lemuroid_name", "KL GBA")
+            resValue("string", "lemuroid_name", "KL Play")
         }
         getByName("debug") {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
-            resValue("string", "lemuroid_name", "KL GBA Dev")
+            resValue("string", "lemuroid_name", "KL Play Dev")
         }
     }
 

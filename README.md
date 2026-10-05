@@ -1,3 +1,13 @@
+# KL Play — beta experimental
+
+KL Play é a evolução do KL GBA, baseada no Lemuroid. A versão 0.4.0-beta.1 mantém a instalação e os saves existentes e adiciona uma nova identidade visual e um cabo GBA Wi-Fi experimental para dois jogadores em Android ARM64.
+
+O lobby usa a mesma rede Wi-Fi. Ative **Usar cabo Wi-Fi nos jogos de GBA** nos dois celulares, entre numa sala com exatamente duas pessoas e abra a mesma ROM. Espere **Cabo GBA sincronizado** antes de escolher multiplayer no jogo. Pokémon ainda não tem troca/batalha confirmadas; o adaptador sem fio não é suportado. DS e 3DS continuam sem multiplayer integrado.
+
+[Fontes, limites e testes do núcleo experimental](tools/kl-link/README.md). Os créditos e licenças do Lemuroid e dos núcleos são mantidos abaixo e no projeto. A base singleplayer não foi substituída.
+
+---
+
 # Lemuroid
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"

@@ -234,6 +234,9 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
                 CircularProgressIndicator()
             }
         }
+        com.swordfish.lemuroid.app.mobile.feature.multiplayer.KlLinkStatus(
+            Modifier.align(Alignment.TopCenter).windowInsetsPadding(WindowInsets.displayCutout),
+        )
     }
 }
 
