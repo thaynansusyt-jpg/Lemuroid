@@ -144,7 +144,7 @@ class KlWifiRoom(private val port: Int = 55342) {
                 }
                 visitor.write { writeInt(WELCOME); writeInt(id) }
                 s.peers[id] = visitor
-                socket.soTimeout = 15000
+                socket.soTimeout = 30000
                 publishRoster(s)
             }
             pending = false
@@ -168,8 +168,7 @@ class KlWifiRoom(private val port: Int = 55342) {
 
     fun join(address: String, name: String) {
         val cleanAddress = address.trim()
-        val octets = cleanAddress.split('.')
-        if (octets.size != 4 || octets.any { it.toIntOrNull() !in 0..255 }) {
+        if (!validAddress(cleanAddress)) {
             leave()
             changes.value = State(phase = Phase.ERROR, message = "Digite o IP mostrado no celular anfitrião, por exemplo 192.168.1.10.")
             return
@@ -181,7 +180,7 @@ class KlWifiRoom(private val port: Int = 55342) {
                 s.sockets.add(socket)
                 socket.tcpNoDelay = true
                 socket.connect(InetSocketAddress(cleanAddress, port), 5000)
-                socket.soTimeout = 15000
+                socket.soTimeout = 30000
                 if (!active(s)) { socket.close(); return@launch }
                 val peer = Peer(socket, s.hostName)
                 peer.write { writeInt(MAGIC); writeInt(VERSION); writeUTF(s.hostName) }
@@ -266,7 +265,12 @@ class KlWifiRoom(private val port: Int = 55342) {
                 .distinct()
         }.getOrDefault(emptyList())
 
-    private companion object {
+    companion object {
+        fun validAddress(address: String): Boolean {
+            val octets = address.trim().split('.')
+            return octets.size == 4 && octets.all { it.matches(Regex("[0-9]{1,3}")) && it.toInt() in 0..255 }
+        }
+
         const val MAGIC = 0x4B4C5746
         const val VERSION = 1
         const val WELCOME = 1
