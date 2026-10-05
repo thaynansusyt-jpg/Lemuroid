@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,7 +10,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val klAuth = java.util.Properties().apply {
+val klAuth = Properties().apply {
     rootProject.file("config/kl-auth.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 fun authLiteral(key: String): String = "\"" + klAuth.getProperty(key, "").trim().replace("\\", "\\\\").replace("\"", "\\\"") + "\""
