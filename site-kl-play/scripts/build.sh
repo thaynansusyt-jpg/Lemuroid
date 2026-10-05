@@ -8,6 +8,7 @@ cd "$project_root"
 node scripts/embed-assets.mjs
 rm -rf "$dist_root"
 mkdir -p "$dist_root/server" "$dist_root/.openai"
+cp -a "$project_root/drizzle" "$dist_root/drizzle"
 cp "$project_root/worker/index.js" "$dist_root/server/index.js"
 cp "$project_root/.openai/hosting.json" "$dist_root/.openai/hosting.json"
 

@@ -4,6 +4,7 @@ const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:
 export default {async fetch(request,env){
  const u=new URL(request.url),path=u.pathname;
  try{
+ const account=await accountRoute(request,env);if(account)return account;
  if(path==='/api/download-status'){const o=await env.BUCKET.head(KEY);return json({available:!!o&&o.size===SIZE,size:SIZE,sha256:SHA});}
  if(path==='/downloads/SHA256SUMS.txt')return new Response(SHA+'  KL-Play-0.5.0-rc.1.apk\n',{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=300'}});
  const release=path==='/'+KEY?{key:KEY,size:SIZE,sha:SHA}:path==='/'+LEGACY.key?LEGACY:null;

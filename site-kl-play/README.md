@@ -1,13 +1,11 @@
-# Site do KL Play — cópia independente
+# Site KL Play com contas e backup
 
-Código do site atualizado em 5 de outubro de 2026: HTML, CSS, JavaScript, fotos enviadas pelo criador e logo original do KL. Este repositório não contém senhas, tokens nem chave privada de assinatura.
+Código da página e API de contas da atualização Plus. O backend utiliza Cloudflare Workers e D1; os APKs ficam em R2.
 
-A página permite tema claro/escuro, ampliação das fotos e comparação das skins. O download atual é KL Play 0.5.0-rc.1, SHA-256 `709511255f7dabbbfe26dbeac898a985780c94808af205190fadbecf18c0b825`.
+Instale dependências com npm ci. Gere apenas novas migrations com npx drizzle-kit generate e aplique o histórico de drizzle na base D1. Configure os bindings DB e BUCKET. Use bash scripts/build.sh para embutir a interface no Worker. Em outra hospedagem, ajuste a origem ACCOUNT_ORIGIN em worker/accounts.js e a URL do serviço no aplicativo KlCloudAccount.kt. Não publique dados da base nem credenciais dos usuários.
 
-`frontend/` contém a página e suas imagens. `worker/handler.js` contém o serviço de download usando um bucket R2 chamado logicamente `BUCKET`. `scripts/embed-assets.mjs` gera a entrada Worker com os recursos embutidos; `scripts/build.sh` prepara `dist/`. O manifesto de hospedagem deve ser fornecido pelo dono da nova hospedagem; não incluímos a identidade interna do serviço atual nesta cópia.
+O perfil salvo contém nome, Sii, diário e estatísticas; saves e ROMs não são enviados. As senhas são segredos aleatórios de 256 bits gerados no servidor e guardados na base somente como hash. As sessões são aleatórias, expiram após 30 dias e têm hashes na base. Há isolamento por conta e controle de revisão para impedir sobrescrita por dispositivos com cópias antigas.
 
-Esta cópia não depende de uma assinatura ChatGPT para ser lida ou modificada. Para migrar, um desenvolvedor pode adaptar o Worker ao novo provedor e armazenar o APK assinado no bucket, ou servir a página como site estático e apontar o botão para o download publicado na Uptodown. Não recrie chaves de assinatura se deseja atualizar por cima do aplicativo já instalado.
+O app e o código não dependem de uma assinatura ChatGPT, mas a hospedagem e a base de dados precisam de manutenção. Antes de migrar a hospedagem, exporte a base D1 de forma privada; o GitHub contém o esquema, não os dados pessoais. Guarde a chave original de assinatura Android em local privado.
 
-Site atual: https://kl-gba-play.emilysousa65477.chatgpt.site
-Fontes do app: https://github.com/thaynansusyt-jpg/Lemuroid
-Preserve a GPL-3.0 e as licenças próprias dos componentes. Jogos, ROMs e BIOS não fazem parte desta cópia; as imagens dos jogos aparecem apenas nas capturas fornecidas.
+Os assets originais estão em frontend/assets. GPL-3.0 e créditos do Lemuroid e componentes preservados.

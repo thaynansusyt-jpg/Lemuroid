@@ -1,0 +1,24 @@
+import { DatabaseSync } from 'node:sqlite';
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const db=new DatabaseSync(':memory:');db.exec('PRAGMA foreign_keys=ON;');
+for(const file of fs.readdirSync('drizzle').filter(x=>x.endsWith('.sql')).sort())db.exec(fs.readFileSync('drizzle/'+file,'utf8').replaceAll('--> statement-breakpoint',''));
+const env={DB:{prepare(sql){let args=[];return {bind(...a){args=a;return this},async first(){return db.prepare(sql).get(...args)||null},async run(){return db.prepare(sql).run(...args)}}},async batch(items){db.exec('BEGIN');try{const r=[];for(const i of items)r.push(await i.run());db.exec('COMMIT');return r}catch(e){db.exec('ROLLBACK');throw e}}}};
+const code=fs.readFileSync('worker/accounts.js','utf8');const {accountRoute}=await import('data:text/javascript;base64,'+Buffer.from(code+'\nexport { accountRoute };').toString('base64'));
+async function call(path,method='GET',body,token,extra={}){const r=await accountRoute(new Request('https://kl-gba-play.emilysousa65477.chatgpt.site/api/kl/'+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),'CF-Connecting-IP':'192.0.2.10',...extra},...(body?{body:JSON.stringify(body)}:{})}),env);return {status:r.status,data:await r.json()}}
+const a=await call('register','POST',{});assert.equal(a.status,201);assert.equal(a.data.password.length,64);
+assert.equal((await call('login','POST',{username:a.data.username,password:'a'.repeat(64)})).status,401);
+const logged=await call('login','POST',{username:a.data.username,password:a.data.password});assert.equal(logged.status,200);const token=logged.data.token;
+assert.equal((await call('profile')).status,401);assert.equal((await call('profile','GET',undefined,token)).data.profile,null);
+const profile={name:'Jogador Teste',sii:{ink:'#243447',shirt:'#0789FF',clothes:'sii_plus',face:'happy'},days:{'2026-10-05':{millis:120000,sessions:1,note:'Aventura',games:{gba:{title:'Teste',millis:120000}}}}};
+assert.equal((await call('profile','PUT',{revision:0,profile},token)).status,200);
+assert.equal((await call('profile','PUT',{revision:0,profile:{...profile,name:'stale'}},token)).status,409);
+assert.equal((await call('profile','GET',undefined,token)).data.profile.name,'Jogador Teste');
+assert.equal((await call('profile','PUT',{revision:1,profile:{...profile,sii:{...profile.sii,ink:'bad'}}},token)).status,400);
+const b=await call('register','POST',{});const lb=await call('login','POST',{username:b.data.username,password:b.data.password});assert.equal((await call('profile','GET',undefined,lb.data.token)).data.profile,null);
+assert.equal((await call('register','POST',{},undefined,{Origin:'https://evil.test'})).status,403);
+assert.equal((await call('logout','POST',{},token)).status,200);assert.equal((await call('profile','GET',undefined,token)).status,401);
+const again=await call('login','POST',{username:a.data.username,password:a.data.password});assert.equal((await call('account','DELETE',undefined,again.data.token)).status,200);assert.equal((await call('profile','GET',undefined,again.data.token)).status,401);
+assert.equal((await call('profile','GET',undefined,lb.data.token)).status,200);
+for(let i=0;i<5;i++)await call('register','POST',{});assert.equal((await call('register','POST',{})).status,429);
+console.log('Accounts: creation, authentication, validation, backup isolation, revision conflicts, logout, deletion and rate limits passed');
