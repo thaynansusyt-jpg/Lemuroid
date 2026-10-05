@@ -122,7 +122,12 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
 
         setContent {
             val navController = rememberNavController()
-            MainScreen(navController)
+            val introduction = androidx.compose.runtime.saveable.rememberSaveable {
+                mutableStateOf(savedInstanceState == null && !intent.getBooleanExtra("kl_open_multiplayer", false))
+            }
+            if (introduction.value) {
+                AppTheme { com.swordfish.lemuroid.app.mobile.feature.profile.KlIntroduction { introduction.value = false } }
+            } else MainScreen(navController)
         }
     }
 
@@ -213,6 +218,9 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
                             onGameLongClick = onGameLongClick,
                             onOpenCoreSelection = { navController.navigateToRoute(MainRoute.SETTINGS_CORES_SELECTION) },
                         )
+                    }
+                    composable(MainRoute.PROFILE) {
+                        com.swordfish.lemuroid.app.mobile.feature.profile.KlProfileScreen(Modifier.padding(padding))
                     }
                     composable(MainRoute.MULTIPLAYER) {
                         com.swordfish.lemuroid.app.mobile.feature.multiplayer.KlMultiplayerScreen(Modifier.padding(padding))

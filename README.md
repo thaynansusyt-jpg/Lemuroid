@@ -1,3 +1,7 @@
+# KL Play — 0.5.0-rc.1
+
+Esta versão adiciona introdução, aba Perfil, avatar Sii, camiseta KL de lançamento e diário local com tempo por jogo, anotações e sequência diária. O login Google/GitHub está preparado, mas depende dos cadastros oficiais antes de ser ativado. [Como ativar contas e limites desta versão](docs/CONTAS-KL-PLAY.md).
+
 # KL Play — beta experimental
 
 KL Play é a evolução do KL GBA, baseada no Lemuroid. A versão 0.4.0-beta.1 mantém a instalação e os saves existentes e adiciona uma nova identidade visual e um cabo GBA Wi-Fi experimental para dois jogadores em Android ARM64.

@@ -135,6 +135,11 @@ fun LemuroidTopBarActions(
     onHelpPressed: () -> Unit,
 ) {
     Row {
+        if (route.showBottomNavigation && route != MainRoute.SEARCH) {
+            IconButton(onClick = { navController.navigate(MainRoute.SEARCH.route) }) {
+                Icon(Icons.Default.Search, stringResource(R.string.title_search))
+            }
+        }
         IconButton(
             onClick = { onHelpPressed() },
         ) {

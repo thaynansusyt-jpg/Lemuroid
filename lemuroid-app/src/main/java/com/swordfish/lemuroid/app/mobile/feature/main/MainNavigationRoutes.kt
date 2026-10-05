@@ -5,6 +5,8 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.VideogameAsset
@@ -52,6 +54,7 @@ enum class MainRoute(
         route = "multiplayer",
         titleId = R.string.kl_multiplayer,
     ),
+    PROFILE(route = "profile", titleId = R.string.kl_profile),
     SEARCH(
         route = "search",
         titleId = R.string.title_search,
@@ -126,5 +129,5 @@ enum class MainNavigationRoutes(
     FAVORITES(MainRoute.FAVORITES, R.string.favorites, Icons.Filled.Favorite, Icons.Filled.FavoriteBorder),
     SYSTEMS(MainRoute.SYSTEMS, R.string.title_systems, Icons.Filled.VideogameAsset, Icons.Outlined.VideogameAsset),
     MULTIPLAYER(MainRoute.MULTIPLAYER, R.string.kl_multiplayer, Icons.Filled.VideogameAsset, Icons.Outlined.VideogameAsset),
-    SEARCH(MainRoute.SEARCH, R.string.title_search, Icons.Filled.Search, Icons.Outlined.Search),
+    PROFILE(MainRoute.PROFILE, R.string.kl_profile, Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle),
 }

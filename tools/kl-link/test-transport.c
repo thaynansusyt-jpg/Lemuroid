@@ -22,6 +22,7 @@ static void run_case(unsigned kind) {
         .connected = test_connected, .disconnected = test_disconnect,
     };
     assert(kl_register(&callbacks));
+    assert(!kl_audio_muted);
     int peer = socket(AF_INET, SOCK_STREAM, 0); assert(peer >= 0);
     struct sockaddr_in address = {0}; address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); address.sin_port = htons(55343);
@@ -39,11 +40,12 @@ static void run_case(unsigned kind) {
         kl_tick(); usleep(1000);
         if (kind == 2 && receives) { close(peer); peer = -1; }
     }
-    assert(kl_failed);
+    assert(kl_failed && kl_audio_muted);
     assert(starts == (kind != 0)); assert(stops == starts && disconnects == starts);
     assert(receives == (kind == 2)); assert(kl_fd == -1 && kl_listener == -1);
     if (peer >= 0) close(peer);
     kl_shutdown();
+    assert(!kl_audio_muted);
 }
 int main(void) {
     char temporary[] = "/tmp/kl-transport-XXXXXX"; test_directory = mkdtemp(temporary); assert(test_directory);

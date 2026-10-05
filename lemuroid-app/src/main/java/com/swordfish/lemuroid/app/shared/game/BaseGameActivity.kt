@@ -1,6 +1,11 @@
 package com.swordfish.lemuroid.app.shared.game
 
 import com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession
+import com.swordfish.lemuroid.app.shared.profile.KlPlayTracker
+import com.swordfish.lemuroid.app.shared.profile.KlProfileStore
+import com.swordfish.libretrodroid.GLRetroView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
@@ -89,6 +94,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
 
     private val startGameTime = System.currentTimeMillis()
     private var finishTriggered = false
+    private lateinit var playTracker: KlPlayTracker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         KlLinkSession.readIntent(intent)
@@ -98,6 +104,8 @@ abstract class BaseGameActivity : ImmersiveActivity() {
         game = intent.getSerializableExtra(EXTRA_GAME) as Game
         systemCoreConfig = intent.getSerializableExtra(EXTRA_SYSTEM_CORE_CONFIG) as SystemCoreConfig
         system = GameSystem.findById(game.systemId)
+        playTracker = KlPlayTracker(applicationContext, game.id.toString(), game.title)
+        lifecycle.addObserver(playTracker)
 
         val viewModel by viewModels<BaseGameScreenViewModel> {
             BaseGameScreenViewModel.Factory(
@@ -148,6 +156,11 @@ abstract class BaseGameActivity : ImmersiveActivity() {
             },
         )
 
+        lifecycleScope.launch {
+            baseGameScreenViewModel.retroGameView.waitGLEvent<GLRetroView.GLRetroEvents.FrameRendered>()
+            val key = withContext(Dispatchers.IO) { KlProfileStore.snapshot(applicationContext).key }
+            playTracker.markReady(key)
+        }
         initialiseFlows()
     }
 
@@ -298,7 +311,8 @@ abstract class BaseGameActivity : ImmersiveActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
-    private fun performSuccessfulActivityFinish() {
+    private suspend fun performSuccessfulActivityFinish() {
+        playTracker.finish()
         val resultIntent =
             Intent().apply {
                 putExtra(PLAY_GAME_RESULT_SESSION_DURATION, System.currentTimeMillis() - startGameTime)

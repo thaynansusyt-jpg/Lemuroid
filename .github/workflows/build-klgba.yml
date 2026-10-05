@@ -151,6 +151,7 @@ jobs:
           PYCODE
           printf 'https://github.com/%s/commit/%s\n' "$GITHUB_REPOSITORY" "$GITHUB_SHA" > public-apk/FONTE.txt
           cat "$RUNNER_TEMP/kl-link-source.txt" >> public-apk/FONTE.txt
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --print-certs "public-apk/KL-Play-$KL_VERSION.apk" > public-apk/ASSINATURA-PUBLICA.txt
           unzip -l "public-apk/KL-Play-$KL_VERSION.apk" | grep 'lib/arm64-v8a/libkl_mgba_link.so'
           cd public-apk
           sha256sum "KL-Play-$KL_VERSION.apk" > SHA256SUMS.txt

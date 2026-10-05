@@ -8,11 +8,23 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val klAuth = java.util.Properties().apply {
+    rootProject.file("config/kl-auth.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+fun authLiteral(key: String): String = "\"" + klAuth.getProperty(key, "").trim().replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
 android {
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     defaultConfig {
-        versionCode = 256
-        versionName = "0.4.0-beta.1" // Always remember to update Cores Tag!
+        versionCode = 257
+        versionName = "0.5.0-rc.1" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
+        buildConfigField("String", "KL_GOOGLE_CLIENT_ID", authLiteral("google.webClientId"))
+        buildConfigField("String", "KL_GITHUB_CLIENT_ID", authLiteral("github.clientId"))
     }
     flavorDimensions += listOf("opensource", "cores")
 
@@ -125,6 +137,10 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation(project(":retrograde-util"))
     implementation(project(":retrograde-app-shared"))
     implementation(project(":lemuroid-metadata-libretro-db"))

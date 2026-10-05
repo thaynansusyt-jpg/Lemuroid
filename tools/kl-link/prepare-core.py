@@ -8,6 +8,8 @@ root = Path(sys.argv[1])
 source = root / "src/platform/libretro/libretro.c"
 text = source.read_text()
 changes = {
+    'void retro_set_audio_sample_batch(retro_audio_sample_batch_t audioBatch) {\n\taudioCallback = audioBatch;':
+    'void retro_set_audio_sample_batch(retro_audio_sample_batch_t audioBatch) {\n\tkl_audio_parent = audioBatch;\n\taudioCallback = kl_audio_batch;',
     'void retro_set_environment(retro_environment_t env) {\n\tenvironCallback = env;':
     '#include "kl-lan.h"\n\nvoid retro_set_environment(retro_environment_t env) {\n\tkl_parent = env;\n\tenvironCallback = kl_environment;',
     '\tmLibretroGBAWifiLinkRunBegin();': '\tkl_tick();\n\tmLibretroGBAWifiLinkRunBegin();',

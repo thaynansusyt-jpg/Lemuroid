@@ -21,6 +21,11 @@
 #define KL_MAX_QUEUE (4u * 1024u * 1024u)
 struct kl_chunk { struct kl_chunk *next; size_t size, offset; unsigned char bytes[]; };
 static retro_environment_t kl_parent;
+static retro_audio_sample_batch_t kl_audio_parent;
+static bool kl_audio_muted;
+static size_t RETRO_CALLCONV kl_audio_batch(const int16_t *data, size_t frames) {
+    return kl_audio_muted || !kl_audio_parent ? frames : kl_audio_parent(data, frames);
+}
 static struct retro_netpacket_callback kl_callbacks;
 static int kl_fd = -1, kl_listener = -1, kl_role, kl_connecting;
 static bool kl_enabled, kl_started, kl_authenticated, kl_failed;
@@ -53,6 +58,7 @@ static void kl_close_sockets(void) {
 static void kl_fail(const char *message) {
     if (kl_failed) return;
     kl_failed = true;
+    kl_audio_muted = true;
     kl_close_sockets();
     if (kl_started) {
         kl_started = false;
@@ -65,7 +71,7 @@ static void kl_shutdown(void) {
     if (kl_started && kl_callbacks.stop) kl_callbacks.stop();
     kl_started = false;
     kl_close_sockets();
-    kl_enabled = kl_authenticated = kl_failed = false;
+    kl_enabled = kl_authenticated = kl_failed = kl_audio_muted = false;
     kl_connecting = 0;
     memset(&kl_callbacks, 0, sizeof(kl_callbacks));
 }
@@ -219,7 +225,10 @@ static bool RETRO_CALLCONV kl_environment(unsigned command, void *data) {
     if (command == RETRO_ENVIRONMENT_SET_NETPACKET_INTERFACE) return kl_register(data);
     if (kl_enabled && command == RETRO_ENVIRONMENT_SET_MESSAGE_EXT && data) {
         const struct retro_message_ext *message = data;
-        if (message->level == RETRO_LOG_ERROR) kl_status(message->msg);
+        if (message->level == RETRO_LOG_ERROR) {
+            kl_audio_muted = true;
+            kl_status(message->msg);
+        }
         else if (message->msg && strstr(message->msg, "GBA Wi-Fi Link ready:"))
             kl_status("Cabo GBA sincronizado • 2 jogadores. Abra o multiplayer dentro do jogo.");
     }
