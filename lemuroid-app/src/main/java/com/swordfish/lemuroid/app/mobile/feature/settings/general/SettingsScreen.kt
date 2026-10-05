@@ -56,6 +56,7 @@ fun SettingsScreen(
         LemuroidCardSettingsGroup(title = { Text("Visual KL") }) {
             com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlDarkModeToggle()
         }
+        KlPlaySettingsPanel()
         GeneralSettings()
         InputSettings(navController = navController)
         MiscSettings(
