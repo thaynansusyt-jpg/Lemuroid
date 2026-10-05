@@ -147,8 +147,7 @@ class BaseGameScreenViewModel(
 
     private inline fun withLoading(block: () -> Unit) {
         loadingState.value = true
-        block()
-        loadingState.value = false
+        try { block() } finally { loadingState.value = false }
     }
 
     fun getGameState(): Flow<GameViewModelRetroGameView.GameState> {

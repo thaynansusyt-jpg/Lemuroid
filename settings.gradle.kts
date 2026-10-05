@@ -71,3 +71,6 @@ if (usePlayDynamicFeatures()) {
     project(":lemuroid_core_dosbox_pure").projectDir = File("lemuroid-cores/lemuroid_core_dosbox_pure")
     project(":lemuroid_core_citra").projectDir = File("lemuroid-cores/lemuroid_core_citra")
 }
+
+include(":kl-runtime")
+project(":kl-runtime").projectDir = File("kl-runtime-source/libretrodroid")

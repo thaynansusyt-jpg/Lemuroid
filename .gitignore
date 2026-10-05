@@ -17,3 +17,6 @@ project.properties
 .externalNativeBuild
 local.properties
 release.jks
+
+kl-runtime-source/
+__pycache__/

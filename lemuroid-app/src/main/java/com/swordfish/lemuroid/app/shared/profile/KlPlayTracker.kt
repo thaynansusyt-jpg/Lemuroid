@@ -54,6 +54,10 @@ class KlPlayTracker(private val context: Context, private val gameId: String, pr
         writes += scope.launch {
             runCatching { KlProfileStore.record(context, key, session, gameId, title, wall, elapsed, zone) }
                 .onFailure { Timber.e(it, "Could not persist local play diary") }
+            if (stop && key.startsWith("kl:")) {
+                runCatching { KlCloudAccount.backup(context) }
+                    .onFailure { Timber.w("KL profile backup pending; local diary preserved") }
+            }
         }
     }
     suspend fun finish() {

@@ -22,8 +22,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     defaultConfig {
-        versionCode = 257
-        versionName = "0.5.0-rc.1" // Always remember to update Cores Tag!
+        versionCode = 258
+        versionName = "0.5.0-plus.1" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
         buildConfigField("String", "KL_GOOGLE_CLIENT_ID", authLiteral("google.webClientId"))
         buildConfigField("String", "KL_GITHUB_CLIENT_ID", authLiteral("github.clientId"))
@@ -219,7 +219,7 @@ dependencies {
     implementation(deps.libs.composeSettings.diskStorage)
     implementation(deps.libs.composeSettings.memoryStorage)
 
-    implementation(deps.libs.libretrodroid)
+    implementation(project(":kl-runtime"))
 
     // Uncomment this when using a local aar file.
     // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))

@@ -81,7 +81,7 @@ object KlProfileStore {
         val p = data(root, root.getString("current"))
         p.put("name", name.trim().take(32).ifBlank { "Jogador KL" })
         p.put("sii", JSONObject().put("ink", color(sii.ink, "#243447")).put("shirt", color(sii.shirt, "#0789FF"))
-            .put("clothes", sii.clothes.takeIf { it in listOf("kl", "tee", "hoodie", "sport") } ?: "kl")
+            .put("clothes", sii.clothes.takeIf { it in listOf("kl", "tee", "hoodie", "sport", "sii_plus") } ?: "kl")
             .put("face", sii.face.takeIf { it in listOf("happy", "cool", "calm") } ?: "happy"))
     }
 
@@ -125,6 +125,34 @@ object KlProfileStore {
             guest.put("imported", true)
         }
         root.put("current", key)
+    }
+
+    fun exportCurrent(context: Context): JSONObject = transaction(context) { root ->
+        val p = JSONObject(data(root, root.getString("current")).toString())
+        val a = p.optJSONObject("sii") ?: JSONObject()
+        p.put("sii", JSONObject().put("ink", a.optString("ink", "#243447")).put("shirt", a.optString("shirt", "#0789FF"))
+            .put("clothes", a.optString("clothes", "kl")).put("face", a.optString("face", "happy")))
+        p.remove("provider"); p.remove("imported"); p
+    }
+
+    fun signInKl(context: Context, id: String, cloud: JSONObject?) = transaction(context, true) { root ->
+        require(id.matches(Regex("[0-9a-f]{32}")))
+        val key = "kl:$id"
+        val profiles = root.getJSONObject("profiles")
+        val p = cloud?.let { JSONObject(it.toString()) } ?: profiles.optJSONObject(key)
+            ?: JSONObject(data(root, root.getString("current")).toString())
+        p.put("provider", "kl")
+        profiles.put(key, p)
+        root.put("current", key)
+    }
+
+    fun restoreKl(context: Context, cloud: JSONObject) = transaction(context, true) { root ->
+        val key = root.getString("current")
+        require(key.startsWith("kl:"))
+        // Keep the previous local profile in the store before restoring remote data.
+        root.getJSONObject("profiles").put("backup:$key:${System.currentTimeMillis()}", JSONObject(data(root, key).toString()))
+        val p = JSONObject(cloud.toString()).put("provider", "kl")
+        root.getJSONObject("profiles").put(key, p)
     }
 
     fun signOut(context: Context) = transaction(context, true) { it.put("current", it.getString("guest")) }

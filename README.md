@@ -1,75 +1,46 @@
-# KL Play — 0.5.0-rc.1
+# KL Play
 
-Esta versão adiciona introdução, aba Perfil, avatar Sii, camiseta KL de lançamento e diário local com tempo por jogo, anotações e sequência diária. O login Google/GitHub está preparado, mas depende dos cadastros oficiais antes de ser ativado. [Como ativar contas e limites desta versão](docs/CONTAS-KL-PLAY.md).
+Emulador para Android e fork independente do [Lemuroid](https://github.com/Swordfish90/Lemuroid), criado por Poké Laranja / Senhor Laranja.
 
-# KL Play — beta experimental
+[Site e download](https://kl-gba-play.emilysousa65477.chatgpt.site) · [Releases](https://github.com/thaynansusyt-jpg/Lemuroid/releases) · [Relatar um problema](https://github.com/thaynansusyt-jpg/Lemuroid/issues)
 
-KL Play é a evolução do KL GBA, baseada no Lemuroid. A versão 0.4.0-beta.1 mantém a instalação e os saves existentes e adiciona uma nova identidade visual e um cabo GBA Wi-Fi experimental para dois jogadores em Android ARM64.
+## Versões
 
-O lobby usa a mesma rede Wi-Fi. Ative **Usar cabo Wi-Fi nos jogos de GBA** nos dois celulares, entre numa sala com exatamente duas pessoas e abra a mesma ROM. Espere **Cabo GBA sincronizado** antes de escolher multiplayer no jogo. Pokémon ainda não tem troca/batalha confirmadas; o adaptador sem fio não é suportado. DS e 3DS continuam sem multiplayer integrado.
+- **0.5.0-rc.1**: primeira candidata pública, com biblioteca/capas, skins, temas, perfil, Sii e diário local. Google e GitHub ainda não estão configurados.
+- **0.5.0 Plus (0.5.0-plus.1)**: candidata de manutenção. Corrige limites do áudio durante avanço rápido e o estado de carregamento, reduz uploads de imagem repetidos e adiciona conta KL, backup do perfil e conjunto Sii+.
 
-[Fontes, limites e testes do núcleo experimental](tools/kl-link/README.md). Os créditos e licenças do Lemuroid e dos núcleos são mantidos abaixo e no projeto. A base singleplayer não foi substituída.
+As versões são de teste. Compatibilidade e desempenho dependem do aparelho, do jogo e do núcleo; não há promessa de 8x ou 60 FPS universais.
 
----
+## Instalação e atualização
 
-# Lemuroid
+Baixe **somente o APK** da versão desejada. Instale a Plus por cima do KL Play atual para manter dados. O pacote permanece `com.klgames.klgba`, com a mesma chave de assinatura e versionCode crescente. Antes de desinstalar um app Dev separado, exporte os saves e teste sua importação. Não distribua ROMs ou BIOS.
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.swordfish.lemuroid/)
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
-     alt="Get it on Google Play"
-     height="80">](https://play.google.com/store/apps/details?id=com.swordfish.lemuroid)
+## Conta KL e backup
 
-## Description
+Crie a conta em [Conta KL](https://kl-gba-play.emilysousa65477.chatgpt.site/conta.html), guarde o usuário e a senha gerados e entre em Perfil no aplicativo Plus. A conta autentica acesso ao servidor, não identidade civil/e-mail. O conjunto Sii+ é desbloqueado no editor, em Conjuntos.
 
-Lemuroid is an open-source emulation project for Android based on Libretro. Its main goal is ease of use, good Android integration and a great user experience.
+O backup salva **nome, Sii, diário e estatísticas**. Não inclui saves de jogos, ROMs, capas, skins ou configurações. O app tenta enviar ao pausar uma partida; use **Salvar perfil no site** e confira o último envio confirmado. Jogar funciona offline. Conflitos preservam o perfil local e exigem restauração explícita; não há mesclagem automática. Sem usuário/senha guardados, não existe recuperação de acesso nesta versão. Exclusão da conta e do backup é possível no site e no aplicativo.
 
-It originated from a rib of [Retrograde](https://github.com/retrograde/retrograde-android), but graduated to a standalone project integrating [LibretroDroid](https://github.com/Swordfish90/LibretroDroid).
+## Multiplayer experimental
 
-|Screen 1|Screen 2|Screen 3|
-|---|---|---|
-|![Screen1](https://github.com/Swordfish90/Lemuroid/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg)|![Screen2](https://github.com/Swordfish90/Lemuroid/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg)|![Screen3](https://github.com/Swordfish90/Lemuroid/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg)|
+Salas locais comportam até 3 participantes, mas o cabo GBA Multi-Pak funciona com **2 jogadores**, em Android ARM64. Mario Kart: Super Circuit foi testado pelo criador. Pokémon Quetzal apresentou falha. RFU, multiplayer DS/3DS e compatibilidade geral com hacks não são garantidos. Avanço rápido e operações de save state ficam desativados durante o cabo.
 
-### Supported Systems:
-- Atari 2600 (A26) ([stella](https://docs.libretro.com/library/stella/))
-- Atari 7800 (A78) ([prosystem](https://docs.libretro.com/library/prosystem/))
-- Atari Lynx (Lynx) ([handy](https://docs.libretro.com/library/handy/))
-- Nintendo (NES) ([fceumm](https://docs.libretro.com/library/fceumm/))
-- Super Nintendo (SNES) ([snes9x](https://docs.libretro.com/library/snes9x/))
-- Game Boy (GB) ([gambatte](https://docs.libretro.com/library/gambatte/))
-- Game Boy Color (GBC) ([gambatte](https://docs.libretro.com/library/gambatte/))
-- Game Boy Advance (GBA) ([mgba](https://docs.libretro.com/library/mgba/))
-- Sega Genesis (aka Megadrive) ([genesis_plus_gx](https://docs.libretro.com/library/genesis_plus_gx/))
-- Sega CD (aka Mega CD) ([genesis_plus_gx](https://docs.libretro.com/library/genesis_plus_gx/))
-- Sega Master System (SMS) ([genesis_plus_gx](https://docs.libretro.com/library/genesis_plus_gx/))
-- Sega Game Gear (GG) ([genesis_plus_gx](https://docs.libretro.com/library/genesis_plus_gx/))
-- Nintendo 64 (N64) ([mupen64plus](https://docs.libretro.com/library/mupen64plus/))
-- PlayStation (PSX) ([PCSX-ReARMed](https://docs.libretro.com/library/pcsx_rearmed/))
-- PlayStation Portable (PSP) ([ppsspp](https://docs.libretro.com/library/ppsspp/))
-- FinalBurn Neo (Arcade) ([fbneo](https://github.com/libretro/FBNeo/))
-- Nintendo DS (NDS) ([desmume](https://docs.libretro.com/library/desmume/)/[MelonDS](https://docs.libretro.com/library/melonds/))
-- NEC PC Engine (PCE) ([beetle_pce_fast](https://docs.libretro.com/library/beetle_pce_fast/))
-- Neo Geo Pocket (NGP) ([mednafen_ngp](https://docs.libretro.com/library/beetle_neopop/))
-- Neo Geo Pocket Color (NGC) ([mednafen_ngp](https://docs.libretro.com/library/beetle_neopop/))
-- WonderSwan (WS) ([beetle_cygne](https://docs.libretro.com/library/beetle_cygne/))
-- WonderSwan Color (WSC) ([beetle_cygne](https://docs.libretro.com/library/beetle_cygne/))
-- Nintendo 3DS (3DS) ([citra](https://docs.libretro.com/library/citra/))
+## Compilar
 
-### Features:
-- Android TV support
-- Automatically save and restore game states.
-- ROMs scanning and indexing
-- Optimized touch controls
-- Quick save/load
-- Support for Zipped ROMs
-- Display simulation (LCD/CRT)
-- Gamepad support
-- Local multiplayer
-- Tilt input
-- Customizable touch controls (size and position)
-- Cloud save sync
-- HD mode
+Use JDK 17, Android SDK 35, CMake 3.22.1 e NDK 27.2.12479018. Clone este repositório na branch `dev` com submódulos recursivos. Prepare o runtime fixado antes do Gradle:
 
-### Languages:
-You can help translate Lemuroid in your native language by going here: https://crowdin.com/project/lemuroid
+```sh
+git clone --recurse-submodules https://github.com/Swordfish90/LibretroDroid kl-runtime-source
+git -C kl-runtime-source checkout 0ebd299624bfd51a0a1336dd0a2c56fe7ddbc0e3
+git -C kl-runtime-source submodule update --init --recursive
+python3 tools/kl-runtime/prepare.py kl-runtime-source
+./gradlew :lemuroid-app:assembleFreeBundleDebug
+```
+
+A rotina completa, incluindo o núcleo cabo GBA, está em `.github/workflows/build-klgba.yml`. Releases de produção exigem a chave privada original, mantida somente nos secrets do GitHub. Nunca publique a chave ou senha. As releases incluem SHA-256, certificado público e referência do código-fonte.
+
+## Créditos e licença
+
+Lemuroid e LibretroDroid: Filippo Scognamiglio / Swordfish90 e colaboradores. Núcleos libretro e bibliotecas: seus respectivos autores. Cabo GBA experimental: Aelvryx/mgba-wifi-link (commit fixado na rotina de build). KL Play é um fork independente, sem vínculo oficial com Nintendo ou os autores dos jogos.
+
+Preserve a [licença GPL-3.0](COPYING) e as licenças dos componentes, presentes no projeto e nos submódulos. O código de cada APK é identificado na release e em `FONTE.txt`. Os patches do runtime estão em `tools/kl-runtime`, junto aos testes de limites de áudio. As imagens de jogos no site demonstram a interface; o aplicativo não contém jogos.
