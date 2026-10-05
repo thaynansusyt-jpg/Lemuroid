@@ -48,6 +48,10 @@ enum class MainRoute(
         route = "favorites",
         titleId = R.string.favorites,
     ),
+    MULTIPLAYER(
+        route = "multiplayer",
+        titleId = R.string.kl_multiplayer,
+    ),
     SEARCH(
         route = "search",
         titleId = R.string.title_search,
@@ -121,5 +125,6 @@ enum class MainNavigationRoutes(
     HOME(MainRoute.HOME, R.string.title_home, Icons.Filled.Home, Icons.Outlined.Home),
     FAVORITES(MainRoute.FAVORITES, R.string.favorites, Icons.Filled.Favorite, Icons.Filled.FavoriteBorder),
     SYSTEMS(MainRoute.SYSTEMS, R.string.title_systems, Icons.Filled.VideogameAsset, Icons.Outlined.VideogameAsset),
+    MULTIPLAYER(MainRoute.MULTIPLAYER, R.string.kl_multiplayer, Icons.Filled.VideogameAsset, Icons.Outlined.VideogameAsset),
     SEARCH(MainRoute.SEARCH, R.string.title_search, Icons.Filled.Search, Icons.Outlined.Search),
 }
