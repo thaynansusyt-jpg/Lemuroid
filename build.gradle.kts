@@ -35,7 +35,6 @@ allprojects {
     configurations.all {
         resolutionStrategy.eachDependency {
             when (requested.group) {
-                "com.google.android.gms" -> useVersion(deps.versions.gms)
                 "org.jetbrains.kotlin" -> {
                     if (requested.name.startsWith("kotlin-stdlib-jre")) {
                         with(requested) {

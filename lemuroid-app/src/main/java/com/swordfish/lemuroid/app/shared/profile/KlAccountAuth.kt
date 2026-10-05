@@ -10,6 +10,8 @@ import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.swordfish.lemuroid.BuildConfig
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -45,6 +47,7 @@ object KlAccountAuth {
         val id = GoogleIdTokenCredential.createFrom(credential.data)
         withContext(Dispatchers.IO) {
             val claims = verifyGoogle(id.idToken, nonce)
+            currentCoroutineContext().ensureActive()
             KlProfileStore.signIn(activity.applicationContext, "google", claims.getString("sub"), id.displayName ?: "Jogador Google")
         }
     }
@@ -103,6 +106,7 @@ object KlAccountAuth {
                         val person = response(Request.Builder().url("https://api.github.com/user").header("Authorization", "Bearer $access")
                             .header("Accept", "application/vnd.github+json").header("X-GitHub-Api-Version", "2022-11-28").header("User-Agent", "KL-Play").build())
                         val id = person.getLong("id").also { require(it > 0) }
+                        currentCoroutineContext().ensureActive()
                         KlProfileStore.signIn(context, "github", id.toString(), person.optString("name").takeUnless { it.isBlank() || it == "null" } ?: person.getString("login"))
                     }
                     break
