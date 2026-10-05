@@ -30,7 +30,7 @@ async function loadDownload(){
   let response;try{response=await fetch('/api/download-status',{cache:'no-store',signal:controller.signal})}finally{clearTimeout(timer)}
   if(!response.ok)throw new Error('Unavailable');const info=await response.json();
   if(!info.available){state.textContent='APK novo em preparação';button.textContent='Download em preparação';return}
-  button.href='/downloads/KL-Play-0.5.0-rc.1.apk';button.setAttribute('download','KL-Play-0.5.0-rc.1.apk');button.removeAttribute('aria-disabled');button.textContent='Baixar APK para Android ↓';state.textContent='0.5.0-rc.1 disponível';note.textContent='Download direto • '+(info.size/1048576).toFixed(1).replace('.',',')+' MB • sem conta GitHub.';
+  button.href=info.url||'/downloads/KL-Play-0.5.0-rc.1.apk';button.setAttribute('download',info.filename||'KL-Play-0.5.0-rc.1.apk');button.removeAttribute('aria-disabled');button.textContent='Baixar APK para Android ↓';state.textContent=(info.version||'0.5.0-rc.1')+' disponível';note.textContent=(info.host||'Download direto')+' • '+(info.size/1048576).toFixed(1).replace('.',',')+' MB • sem conta GitHub.';
  }catch{state.textContent='Download temporariamente indisponível';button.textContent='Tente novamente em instantes';note.textContent='Recarregue a página para conferir o download.'}
 }
 loadDownload();

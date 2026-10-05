@@ -1,3 +1,4 @@
+const PLUS={"version":"0.5.0-plus.1","size":209509274,"sha256":"0b49706fa4147e9b18125500e5c5e0bb99221cb08446dd9511086ed7fba53b4f","filename":"KL-Play-0.5.0-plus.1.apk","url":"/downloads/KL-Play-0.5.0-plus.1.apk","host":"Hospedado no GitHub","asset":"https://github.com/thaynansusyt-jpg/Lemuroid/releases/download/v0.5.0-plus.1/KL-Play-0.5.0-plus.1.apk"};
 const KEY='downloads/KL-Play-0.5.0-rc.1.apk', SIZE=202534464, SHA='709511255f7dabbbfe26dbeac898a985780c94808af205190fadbecf18c0b825';
 const LEGACY={key:'downloads/KL-GBA-0.1.0-beta.1.apk',size:199005449,sha:'c964c3bc80ffb693ee614ff8d1135a47448ae0154d7a8aa0660bc5d35fa38fdd'};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -5,7 +6,9 @@ export default {async fetch(request,env){
  const u=new URL(request.url),path=u.pathname;
  try{
  const account=await accountRoute(request,env);if(account)return account;
- if(path==='/api/download-status'){const o=await env.BUCKET.head(KEY);return json({available:!!o&&o.size===SIZE,size:SIZE,sha256:SHA});}
+ if(path==='/api/download-status'){if(PLUS)return json({...PLUS,available:true});const o=await env.BUCKET.head(KEY);return json({available:!!o&&o.size===SIZE,size:SIZE,sha256:SHA});}
+ if(PLUS&&path===PLUS.url&&['GET','HEAD'].includes(request.method))return Response.redirect(PLUS.asset,307);
+ if(PLUS&&path==='/downloads/SHA256SUMS.txt')return new Response(PLUS.sha256+'  '+PLUS.filename+'\n',{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}});
  if(path==='/downloads/SHA256SUMS.txt')return new Response(SHA+'  KL-Play-0.5.0-rc.1.apk\n',{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=300'}});
  const release=path==='/'+KEY?{key:KEY,size:SIZE,sha:SHA}:path==='/'+LEGACY.key?LEGACY:null;
  if(release){

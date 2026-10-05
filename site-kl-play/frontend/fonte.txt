@@ -1,22 +1,27 @@
-KL Play 0.5.0-rc.1 — fontes e créditos
+KL Play 0.5.0-plus.1 — fontes e créditos
 
 KL Play é um fork independente do Lemuroid, com alterações por Poké Laranja/Senhor Laranja.
 Código-fonte desta versão:
-https://github.com/thaynansusyt-jpg/Lemuroid/tree/6dcf43a94d05b3ef0ab2591167219afb41f7e223
+https://github.com/thaynansusyt-jpg/Lemuroid/tree/ab523de65da88cb0ca6f5400eb181c1a59af909b
 Compilação reproduzível e assinatura do APK:
-https://github.com/thaynansusyt-jpg/Lemuroid/blob/6dcf43a94d05b3ef0ab2591167219afb41f7e223/.github/workflows/build-klgba.yml
+https://github.com/thaynansusyt-jpg/Lemuroid/blob/ab523de65da88cb0ca6f5400eb181c1a59af909b/.github/workflows/build-klgba.yml
 Ao clonar, use git clone --recurse-submodules e preserve as revisões dos submódulos. Chaves privadas de assinatura não são distribuídas.
 
 Lemuroid original:
 https://github.com/Swordfish90/Lemuroid
 Licença do aplicativo: GPL-3.0, preservada em /licenca.txt.
 Créditos e licenças dos componentes:
-https://github.com/thaynansusyt-jpg/Lemuroid/blob/6dcf43a94d05b3ef0ab2591167219afb41f7e223/lemuroid-app/src/main/res/raw/licenses.html
+https://github.com/thaynansusyt-jpg/Lemuroid/blob/ab523de65da88cb0ca6f5400eb181c1a59af909b/lemuroid-app/src/main/res/raw/licenses.html
 Fontes e licenças dos núcleos: os repositórios e submódulos indicados no projeto, incluindo LemuroidCores. Preserve as licenças próprias de cada componente.
 
 Núcleo separado do cabo GBA:
 https://github.com/Aelvryx/mgba-wifi-link/tree/9e919b0cfbb93af7d1171570dfc6745d00eeebab
 Licença: MPL-2.0. Alterações KL e testes:
-https://github.com/thaynansusyt-jpg/Lemuroid/tree/6dcf43a94d05b3ef0ab2591167219afb41f7e223/tools/kl-link
+https://github.com/thaynansusyt-jpg/Lemuroid/tree/ab523de65da88cb0ca6f5400eb181c1a59af909b/tools/kl-link
 
 Jogos, BIOS, marcas e capas das capturas pertencem a seus respectivos titulares. Não são distribuídos no APK. Este projeto não é afiliado à Nintendo, The Pokémon Company ou ao projeto oficial Lemuroid.
+
+Runtime LibretroDroid 0.13.2, revisão fixada:
+https://github.com/Swordfish90/LibretroDroid/tree/0ebd299624bfd51a0a1336dd0a2c56fe7ddbc0e3
+Correções Plus e instruções de preparação:
+https://github.com/thaynansusyt-jpg/Lemuroid/tree/ab523de65da88cb0ca6f5400eb181c1a59af909b/tools/kl-runtime
