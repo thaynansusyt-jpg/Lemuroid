@@ -8,6 +8,8 @@ import android.security.keystore.KeyProperties
 import android.util.AtomicFile
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -40,12 +42,12 @@ object KlCloudAccount {
         val folder = File(context.noBackupFilesDir, "kl-cloud").apply { mkdirs() }
         RandomAccessFile(File(folder, "session.lock"), "rw").use { lock -> lock.channel.lock().use {
             val file = AtomicFile(File(folder, "session.bin"))
-            val value = if (file.baseFile.exists()) {
+            val value = if (file.baseFile.exists()) runCatching {
                 val bytes = file.readFully()
                 val cipher = Cipher.getInstance("AES/GCM/NoPadding")
                 cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, bytes.copyOfRange(0, 12)))
                 JSONObject(cipher.doFinal(bytes.copyOfRange(12, bytes.size)).toString(Charsets.UTF_8))
-            } else null
+            }.getOrNull() else null
             block(file, value)
         } }
     }
@@ -69,9 +71,11 @@ object KlCloudAccount {
     fun openSite(context: Context) { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$SITE/conta.html"))) }
 
     suspend fun login(context: Context, username: String, password: String) = withContext(Dispatchers.IO) {
+        val caller = currentCoroutineContext()
         session(context) { file, _ ->
             val login = api("login", "POST", body = JSONObject().put("username", username.trim()).put("password", password.trim()))
             val cloud = api("profile", "GET", login.getString("token"))
+            caller.ensureActive()
             KlProfileStore.signInKl(context, login.getString("id"), cloud.optJSONObject("profile"))
             val state = JSONObject().put("token", login.getString("token")).put("id", login.getString("id"))
                 .put("username", login.getString("username")).put("revision", cloud.getLong("revision")).put("updated", cloud.optLong("updated"))
@@ -93,12 +97,14 @@ object KlCloudAccount {
         session(context) { file, state -> upload(context, file, state ?: error("Entre na conta KL novamente.")) }
     }
     suspend fun restore(context: Context) = withContext(Dispatchers.IO) {
+        val caller = currentCoroutineContext()
         session(context) { file, state ->
             check(state != null) { "Entre na conta KL novamente." }
             val current = KlProfileStore.snapshot(context)
             check(current.key == "kl:" + state.getString("id")) { "Esta sessão pertence a outro perfil." }
             val cloud = api("profile", "GET", state.getString("token"))
             val profile = cloud.optJSONObject("profile") ?: error("Ainda não existe um backup.")
+            caller.ensureActive()
             KlProfileStore.restoreKl(context, profile)
             state.put("revision", cloud.getLong("revision")).put("updated", cloud.optLong("updated")); save(file, state)
         }

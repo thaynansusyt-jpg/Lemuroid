@@ -48,6 +48,7 @@ android {
  namespace 'com.swordfish.libretrodroid'
  compileSdk 35
  ndkVersion '27.2.12479018'
+ kotlinOptions { jvmTarget = '17' }
  defaultConfig {
   minSdk 23
   externalNativeBuild { cmake { arguments '-DANDROID_STL=c++_static' } }
