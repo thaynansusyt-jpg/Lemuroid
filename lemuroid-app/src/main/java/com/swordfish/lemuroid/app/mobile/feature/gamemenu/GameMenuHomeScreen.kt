@@ -145,6 +145,7 @@ fun GameMenuHomeScreen(
         )
 
         if (gameMenuRequest.fastForwardSupported) {
+            com.swordfish.lemuroid.app.mobile.feature.settings.general.KlFastForwardControl()
             LemuroidSettingsSwitch(
                 title = { Text(text = stringResource(id = R.string.game_menu_fast_forward)) },
                 icon = {
