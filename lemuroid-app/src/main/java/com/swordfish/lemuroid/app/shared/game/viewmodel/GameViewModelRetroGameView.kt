@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.swordfish.lemuroid.BuildConfig
 import com.swordfish.lemuroid.R
 import com.swordfish.lemuroid.app.mobile.feature.settings.SettingsManager
+import com.swordfish.lemuroid.app.shared.game.KlPlaySettings
 import com.swordfish.lemuroid.app.shared.game.ShaderChooser
 import com.swordfish.lemuroid.app.shared.game.KlCheats
 import com.swordfish.lemuroid.app.shared.game.KlCheatFormats
@@ -249,14 +250,14 @@ class GameViewModelRetroGameView(
 
             systemDirectory = gameData.systemDirectory.absolutePath
             savesDirectory = gameData.savesDirectory.absolutePath
-            variables = gameData.coreVariables.map { Variable(it.key, it.value) }.toTypedArray()
+            variables = KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, gameData.coreVariables.toList()).map { Variable(it.key, it.value) }.toTypedArray()
             saveRAMState = gameData.saveRAMData
             shader =
                 ShaderChooser.getShaderForSystem(
                     appContext,
-                    hdMode,
+                    hdMode && !KlPlaySettings.enabled(appContext, KlPlaySettings.SIMPLE_FILTER),
                     hdModeQuality,
-                    screenFilter,
+                    if (KlPlaySettings.enabled(appContext, KlPlaySettings.SIMPLE_FILTER)) "smooth" else screenFilter,
                     GameSystem.findById(gameData.game.systemId),
                 )
             preferLowLatencyAudio = lowLatencyAudio
@@ -387,7 +388,7 @@ class GameViewModelRetroGameView(
 
     private fun updateCoreVariables(options: List<CoreVariable>) {
         val updatedVariables =
-            options.map { Variable(it.key, it.value) }
+            KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, options).map { Variable(it.key, it.value) }
                 .toTypedArray()
 
         updatedVariables.forEach {
