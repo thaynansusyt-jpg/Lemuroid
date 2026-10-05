@@ -4,6 +4,8 @@ p=Path(sys.argv[1]); cpp=p/'libretrodroid/src/main/cpp'
 def change(file, old, new):
  s=file.read_text(); assert old in s, f'Pinned runtime changed: {file}'; file.write_text(s.replace(old,new,1))
 change(cpp/'audio.h', '#include <array>', '#include <array>\n#include <atomic>')
+change(cpp/'rumble.h', '#include <array>', '#include <array>\n#include <functional>')
+change(cpp/'utils/javautils.h', '#include <jni.h>', '#include <jni.h>\n#include <functional>')
 change(cpp/'audio.h', 'double playbackSpeed = 1.0;', 'std::atomic<double> playbackSpeed {1.0};\n    int32_t temporaryCapacityFrames = 0;')
 change(cpp/'audio.cpp', 'temporaryAudioBuffer = std::unique_ptr<int16_t[]>(new int16_t[audioBufferSize]);', 'temporaryCapacityFrames = std::max(audioBufferSize, 4096);\n        temporaryAudioBuffer = std::make_unique<int16_t[]>(temporaryCapacityFrames * 2);')
 change(cpp/'audio.cpp', '#include <memory>', '#include <memory>\n#include <algorithm>\n#include <cstring>\n#include "kl_audio_bounds.h"')
