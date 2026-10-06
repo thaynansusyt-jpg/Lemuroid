@@ -125,6 +125,7 @@ private fun HomeScreen(
             ) {
                 val sonicEdition = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlSonic()
                 Text(if (sonicEdition) "◎ KL PLAY · SONIC EDITION" else "KL • PLAY", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineLarge)
+                com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlSegaEventBanner()
                 KlPointerToggle()
                 Text(if (sonicEdition) "SEGA Edition • suas aventuras, seus anéis." else "Seu espaço para jogar.", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
                 Text(

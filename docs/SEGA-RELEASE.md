@@ -1,4 +1,8 @@
-# KL Play 0.5.0s Plus — SEGA Edition
+# KL Play 0.5.0s Plus — Evento SEGA Edition
+
+Atualização 0.5.0s-plus.2 (versionCode 260): contador compartilhado de 10 dias, de 05/10/2026 21:11:44 a 15/10/2026 21:11:44, horário de Brasília. Aparece no Início e em Conquistas. Não reinicia ao reinstalar ou trocar de tema. Quando terminar, as conquistas e os conjuntos continuam disponíveis; nenhuma recompensa é apagada. O contador usa o relógio do aparelho.
+
+Switch/Eden ainda NÃO está integrado nesta versão.
 
 APK assinado, pacote com.klgames.klgba e chave original preservados. Instale por cima da Plus. Android 6.0+; 3DS e cabo GBA experimental continuam limitados ao hardware compatível.
 

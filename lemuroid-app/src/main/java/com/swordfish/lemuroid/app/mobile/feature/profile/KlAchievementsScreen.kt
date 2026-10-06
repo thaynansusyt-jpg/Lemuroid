@@ -31,6 +31,7 @@ fun KlAchievementsScreen(profile: KlProfileStore.Profile, onClose: () -> Unit, o
                 Text("${profile.earned.size} / ${KlAchievements.medals.size} • cada conquista libera uma medalha e uma cor para o Sii")
                 LinearProgressIndicator(progress = profile.earned.size.toFloat() / KlAchievements.medals.size, modifier = Modifier.fillMaxWidth())
                 Text("Conquistas do uso do KL. Não detectam tarefas dentro dos jogos e não são RetroAchievements.", style = MaterialTheme.typography.bodySmall)
+                com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlSegaEventBanner()
                 Row { FilterChip(selected = !onlyUnlocked, onClick = { onlyUnlocked = false }, label = { Text("Todas") }); Spacer(Modifier.width(8.dp)); FilterChip(selected = onlyUnlocked, onClick = { onlyUnlocked = true }, label = { Text("Concluídas") }) }
                 message?.let { Text(it) }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {

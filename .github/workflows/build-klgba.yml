@@ -180,7 +180,7 @@ jobs:
         run: |
           set -euo pipefail
           if ! gh release view "v$KL_VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "v$KL_VERSION" public-apk/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'KL Play 0.5.0s Plus — SEGA Edition' --notes-file docs/SEGA-RELEASE.md --prerelease
+            gh release create "v$KL_VERSION" public-apk/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'KL Play 0.5.0s Plus — Evento SEGA Edition' --notes-file docs/SEGA-RELEASE.md --prerelease
           fi
 
       - uses: actions/upload-artifact@v4
@@ -217,7 +217,7 @@ jobs:
             echo '::warning::SEGA APK published; old releases retained until the website changes download.'
             exit 0
           fi
-          for tag in v0.5.0-rc.1 v0.5.0-plus.1; do
+          for tag in v0.5.0-rc.1 v0.5.0-plus.1 v0.5.0s-plus.1; do
             if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
               gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
             fi
