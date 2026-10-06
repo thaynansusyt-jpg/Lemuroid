@@ -101,6 +101,8 @@ class StatesManager(private val directoriesManager: DirectoriesManager) {
         runCatchingWithRetry(FILE_ACCESS_RETRIES) {
             writeStateToDisk(fileName, coreName, saveState.state)
             writeMetadataToDisk(fileName, coreName, saveState.metadata)
+            directoriesManager.syncPublicSave(getStateFile(fileName, coreName))
+            directoriesManager.syncPublicSave(getMetadataStateFile(fileName, coreName))
         }
     }
 

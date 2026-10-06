@@ -2,6 +2,18 @@
 
 Este APK é uma candidata para testes, não a conclusão de todos os recursos planejados para a 1.0.0. Mantém o pacote e a assinatura das versões anteriores. Instale por cima; não precisa desinstalar nem apagar os dados.
 
+## Mudanças da rc.3
+
+- Modos Pokémon/Quetzal e adaptador sem fio GBA agora esperam a confirmação do próximo quadro pelo outro aparelho. Uma pausa ou aparelho lento faz o par esperar, em vez de acumular movimentos para reproduzir depois. A espera inicial também evita abrir um jogo adiantado em um dos aparelhos. Ambos precisam usar a rc.3: protocolo atualizado para KLR3.
+- Isso não promete eliminar toda a latência do Wi-Fi e não altera o Multi-Pak mGBA nem o cabo GB/GBC. Testes físicos de pausa, retomada e fluidez continuam necessários.
+- Editor DS/3DS em tela inteira, sem sliders: arraste a imagem e puxe o ponto do canto inferior direito para redimensionar. Superior/inferior têm ajustes separados por orientação. No jogo, a prévia usa a imagem real e atualiza pela GPU durante a edição. Salvar ativa tela cheia para manter o espaço da prévia; cancelar restaura as opções anteriores. O jogo continua em execução durante a edição, com os controles virtuais escondidos.
+- Em Configurações → Telas e controles, o editor ocupa uma tela própria com prévia esquemática. Gire o celular para editar a outra orientação.
+- Configurações → Arquivos e saves → Escolher pasta dos saves: selecione/crie Documentos/KL Play pelo seletor do Android. Saves SRAM, estados, prévias e backups do cabo ganham cópias acessíveis fora de Android/data. Saves nativos na pasta do núcleo, incluindo Citra, são copiados ao sair ou colocar o jogo em segundo plano. Conteúdo instalado/DLCs e cache de shaders não fazem parte dessa cópia.
+- Os núcleos mantêm arquivos de trabalho privados. Ao escolher uma pasta, os arquivos antigos são copiados para a área interna privada do app e preservados no local anterior. Falhas de espaço mantêm o caminho antigo utilizável. Não é uma mudança do Android para permitir File diretamente numa URI SAF.
+- A pasta pública mantém a versão anterior como `.previous`; a nova cópia é verificada por SHA-256 antes de substituir a anterior. Falha de permissão/pasta não apaga o save privado. O status em Arquivos e saves mostra cópias pendentes.
+- Reconectar uma pasta restaura arquivos que estejam faltando, sem substituir progresso já existente. Não é sincronização de nuvem nem importação automática de modificações feitas por fora quando já existe uma cópia local.
+- Testes de migração preservam o progresso original e verificam retomada sem substituir saves mais novos. Transporte testado com pausa simulada, proposta fragmentada, ausência de quadros acumulados e contador inválido.
+
 ## Correções da rc.2
 
 - Corrigida a exceção ao iniciar Pokémon/Quetzal: o seletor procurava gpSP na lista de núcleos singleplayer do GBA, que só registra mGBA.
@@ -33,7 +45,7 @@ Este APK é uma candidata para testes, não a conclusão de todos os recursos pl
 5. GB/GBC escolhem automaticamente seu núcleo de cabo. Teste primeiro um jogo conhecido compatível e só depois hacks.
 6. Se perder conexão, saia do jogo e refaça a sala. Avanço rápido e save states ficam desativados durante a sessão para preservar o tempo da ligação. Um backup local da SRAM anterior à sessão é guardado.
 
-Quetzal, trocas/batalhas de Pokémon e compatibilidade dos aparelhos ainda precisam de testes físicos. O teste automatizado do GB verifica bytes em ROMs próprias, não equivale a validar todos os jogos.
+O responsável pelo projeto confirmou Quetzal funcionando na rc.2. As mudanças de sincronização da rc.3, trocas/batalhas e compatibilidade de outros aparelhos ainda precisam de testes físicos. O teste automatizado do GB verifica bytes em ROMs próprias, não equivale a validar todos os jogos.
 
 ## Ainda não entregue
 

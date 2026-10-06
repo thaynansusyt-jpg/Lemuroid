@@ -54,7 +54,7 @@ fun rememberKlFullScreen(): Boolean {
 }
 
 @Composable
-fun KlScreenOptions(core: String? = null) {
+fun KlScreenOptions(core: String? = null, onEditScreens: (() -> Unit)? = null) {
     val context = LocalContext.current
     val full = rememberKlFullScreen()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -71,9 +71,18 @@ fun KlScreenOptions(core: String? = null) {
             else when (core) { "citra" -> listOf("3DS" to KlPlaySettings.THREEDS_LAYOUT); "melonds", "desmume" -> listOf("NDS" to KlPlaySettings.NDS_LAYOUT); else -> emptyList() }
         systems.forEach { (name, key) ->
             var value by remember(key) { mutableStateOf(KlPlaySettings.preferences(context).getString(key, "DEFAULT") ?: "DEFAULT") }
-            var editing by remember(key) { mutableStateOf(false) }
-            if (editing) KlDualScreenEditor(name, { editing = false }, { value = "CUSTOM"; editing = false })
-            TextButton(onClick = { editing = true }) { Text("Editar posição e tamanho das duas telas") }
+            DisposableEffect(key) {
+                val preferences = KlPlaySettings.preferences(context)
+                val listener = SharedPreferences.OnSharedPreferenceChangeListener { p,k ->
+                    if (k == key) value = p.getString(key,"DEFAULT") ?: "DEFAULT"
+                }
+                preferences.registerOnSharedPreferenceChangeListener(listener)
+                onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
+            }
+            TextButton(onClick = {
+                if (onEditScreens != null) onEditScreens()
+                else context.startActivity(android.content.Intent(context, KlScreenEditorActivity::class.java).putExtra("system", name))
+            }) { Text("Editar telas com o dedo") }
             Text("Telas de $name", style = MaterialTheme.typography.titleSmall)
             KlPlaySettings.layouts.forEach { (id, label) ->
                 FilterChip(selected = value == id, onClick = {

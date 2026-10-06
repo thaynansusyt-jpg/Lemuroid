@@ -43,6 +43,7 @@ class SavesManager(private val directoriesManager: DirectoriesManager) {
 
                     val saveFile = getSaveFile(getSaveRAMFileName(game))
                     saveFile.writeBytesAtomic(data)
+                    directoriesManager.syncPublicSave(saveFile)
                 }
             result.getOrNull()
         }

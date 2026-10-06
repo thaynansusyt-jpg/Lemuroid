@@ -66,7 +66,7 @@ dependencies {
 print('Prepared pinned LibretroDroid 0.13.2 with bounded audio and synchronized speed changes')
 # Custom dual-screen presentation is GPU-side; no frame copies/readbacks.
 change(cpp/'video.h', '#include "videolayout.h"', '#include "videolayout.h"\n#include "kl_dual_layout.h"')
-change(cpp/'video.h', '    VideoLayout& getLayout() { return videoLayout; }', '    VideoLayout& getLayout() { return videoLayout; }\n    std::pair<float,float> getPointerPosition(float x,float y);\n    void setKlOrientation(bool portrait) { klPortrait=portrait; }')
+change(cpp/'video.h', '    VideoLayout& getLayout() { return videoLayout; }', '    VideoLayout& getLayout() { return videoLayout; }\n    std::pair<float,float> getPointerPosition(float x,float y);\n    void setKlOrientation(bool portrait) { klPortrait=portrait; isDirty=true; }\n    void invalidateKlLayout() { klSettingsLoaded=false; isDirty=true; }')
 change(cpp/'video.h', '    void updateProgram();', '    void updateProgram();\n    void updateKlLayout();\n    KlDualLayout klLayout;\n    bool klPortrait=true;\n    bool klSettingsLoaded=false;\n    std::string klKind;\n    std::array<float,12> klPositions;')
 change(cpp/'videolayout.h', '    int getScreenWidth()', '    Rect getViewportRect() const { return viewportRect; }\n\n    int getScreenWidth()')
 change(cpp/'video.cpp', '#include "video.h"', '#include "video.h"\n#include "environment.h"\n#include <cstdlib>')
@@ -127,5 +127,5 @@ change(cpp/'video.cpp', '        glDrawArrays(GL_TRIANGLES, 0, 6);', '''        
 change(cpp/'libretrodroid.cpp', 'video->getLayout().getRelativePosition(xAxis, yAxis)', 'video->getPointerPosition(xAxis, yAxis)')
 (cpp/'kl_dual_layout.h').write_text((Path(__file__).parent/'kl_dual_layout.h').read_text())
 
-change(cpp/'libretrodroid.cpp', '    Environment::getInstance().updateVariable(variable.key, variable.value);', '    Environment::getInstance().updateVariable(variable.key, variable.value);\n    if (video && variable.key == "kl_dual_orientation") video->setKlOrientation(variable.value == "p");')
+change(cpp/'libretrodroid.cpp', '    Environment::getInstance().updateVariable(variable.key, variable.value);', '    Environment::getInstance().updateVariable(variable.key, variable.value);\n    if (video && variable.key == "kl_dual_orientation") video->setKlOrientation(variable.value == "p");\n    if (video && variable.key.rfind("kl_dual_", 0) == 0) video->invalidateKlLayout();')
 change(p/'libretrodroid/src/main/java/com/swordfish/libretrodroid/GLRetroView.kt', '            LibretroDroid.onSurfaceChanged(width, height)', '            LibretroDroid.updateVariable(Variable("kl_dual_orientation", if (resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) "l" else "p"))\n            LibretroDroid.onSurfaceChanged(width, height)')

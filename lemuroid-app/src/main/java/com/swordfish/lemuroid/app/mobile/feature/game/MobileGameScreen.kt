@@ -83,7 +83,8 @@ import gg.padkit.inputstate.InputState
 fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val isLandscape = constraints.maxWidth > constraints.maxHeight
-        val klFullScreen = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlFullScreen()
+        val klEditing = viewModel.klEditingScreens.collectAsState().value
+        val klFullScreen = klEditing || com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlFullScreen()
 
         LaunchedEffect(isLandscape) {
             val orientation =
@@ -184,7 +185,7 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
                 val isVisible =
                     touchControllerSettings != null &&
                         currentControllerConfig != null &&
-                        touchControlsVisibleState.value
+                        touchControlsVisibleState.value && !klEditing
 
                 if (isVisible) {
                     CompositionLocalProvider(LocalLemuroidPadTheme provides remember(touchControllerSettings) { LemuroidPadTheme.fromSettings(touchControllerSettings) }) {
@@ -236,6 +237,7 @@ fun MobileGameScreen(viewModel: BaseGameScreenViewModel) {
                 CircularProgressIndicator()
             }
         }
+        if (klEditing) com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlLiveScreenEditor(viewModel)
         com.swordfish.lemuroid.app.mobile.feature.multiplayer.KlLinkStatus(
             Modifier.align(Alignment.TopCenter).windowInsetsPadding(WindowInsets.displayCutout),
         )
@@ -325,7 +327,7 @@ private fun MenuEditTouchControls(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Column {
-                    com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlScreenOptions(viewModel.klCoreName)
+                    com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlScreenOptions(viewModel.klCoreName, onEditScreens = { viewModel.showEditControls(false); viewModel.klEditingScreens.value = true })
                     Text(text = "Skin dos controles")
                     Text(text = "Salva para este console e esta orientação da tela.")
                     TextButton(onClick = { editorOrientation = viewModel.touchControlsOrientation.name; showSkinEditor = true }) {

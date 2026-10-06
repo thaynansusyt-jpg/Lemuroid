@@ -43,7 +43,10 @@ object KlLinkSession {
         // Preserve an independent pre-session SRAM backup before any emulation begins.
         data.saveRAMData?.let { bytes ->
             val folder = File(context.filesDir, "kl-link-backups").apply { mkdirs() }
-            File(folder, "${data.game.id}-${System.currentTimeMillis()}.sav").writeBytes(bytes)
+            File(folder, "${data.game.id}-${System.currentTimeMillis()}.sav").also {
+                it.writeBytes(bytes)
+                com.swordfish.lemuroid.lib.storage.KlPublicSaves.syncFile(context,it)
+            }
         }
         data.systemDirectory.mkdirs()
         statusFile = File(data.systemDirectory, "kl-link-status.txt").apply {

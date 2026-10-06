@@ -36,6 +36,7 @@ class StatesPreviewManager(private val directoriesManager: DirectoriesManager) {
         FileOutputStream(file).use {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it)
         }
+        directoriesManager.syncPublicSave(file)
     }
 
     private fun getPreviewFile(

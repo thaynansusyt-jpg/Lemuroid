@@ -88,6 +88,9 @@ class GameViewModelSaves(
         )
         savesManager.setSaveRAM(game, snapshot.sram)
         snapshot.autoSave?.let { statesManager.setAutoSave(game, systemCoreConfig.coreID, it) }
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.swordfish.lemuroid.lib.storage.KlPublicSaves.syncNative(appContext)
+        }
     }
 
     // On some cores unserialize fails with no reason. So we need to try multiple times.

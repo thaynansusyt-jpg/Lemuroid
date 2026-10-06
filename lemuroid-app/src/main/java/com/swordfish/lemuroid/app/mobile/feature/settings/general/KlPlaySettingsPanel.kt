@@ -39,6 +39,9 @@ fun KlPlaySettingsPanel() {
             com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlScreenOptions()
             Text("Para criar uma skin, abra um jogo e entre no menu dos controles. Cada console guarda um ajuste para vertical e outro para horizontal.", style = MaterialTheme.typography.bodySmall)
         }
+        KlSettingsSection("Arquivos e saves", "Pasta acessível no gerenciador de arquivos") {
+            com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlSaveFolderOptions()
+        }
         KlSettingsSection("Desempenho", "Avanço rápido, filtros e resolução") {
             KlFastForwardControl()
             Text("A velocidade atingida depende do jogo e do celular.", style = MaterialTheme.typography.bodySmall)

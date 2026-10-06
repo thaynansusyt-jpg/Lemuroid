@@ -27,7 +27,7 @@ static void run_case(unsigned kind) {
     struct sockaddr_in address = {0}; address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); address.sin_port = htons(55343);
     assert(!connect(peer, (struct sockaddr*)&address, sizeof(address)));
-    unsigned char hello[41]; memcpy(hello, "KLR2", 4); memcpy(hello+4, kl_key, 32); hello[36] = 1; uint32_t protocol = htonl(kl_protocol()); memcpy(hello+37, &protocol, 4);
+    unsigned char hello[41]; memcpy(hello, "KLR3", 4); memcpy(hello+4, kl_key, 32); hello[36] = 1; uint32_t protocol = htonl(kl_protocol()); memcpy(hello+37, &protocol, 4);
     if (kind == 0) hello[4] ^= 1;
     if (kind == 3) hello[37] ^= 1;
     // Split header deliberately: TCP is a stream, not a packet transport.
@@ -48,12 +48,35 @@ static void run_case(unsigned kind) {
     kl_shutdown();
     assert(!kl_audio_muted);
 }
+static void test_frame_pause(void) {
+    int sockets[2]; assert(!socketpair(AF_UNIX, SOCK_STREAM, 0, sockets));
+    kl_shutdown(); kl_fd = sockets[0]; assert(kl_nonblocking(kl_fd));
+    kl_enabled = kl_started = kl_authenticated = true;
+    kl_callbacks.receive = test_receive;
+    assert(!kl_frame_ready()); assert(kl_frame == 0 && kl_proposal == 1);
+    unsigned char proposal[12]; assert(read(sockets[1], proposal, 12) == 12);
+    for (unsigned i=0;i<4;i++) assert(!kl_frame_ready());
+    assert(kl_frame == 0 && kl_queued == 0); // no catch-up frames or duplicate proposals
+    assert(kl_nonblocking(sockets[1]));
+    assert(recv(sockets[1], proposal, 12, 0) == -1 && errno == EAGAIN);
+    uint32_t control[3] = {htonl(0x80000008u), 0, htonl(1)};
+    assert(write(sockets[1], control, 5) == 5); assert(!kl_frame_ready());
+    assert(write(sockets[1], ((char*)control)+5, 7) == 7);
+    assert(kl_frame_ready()); assert(kl_frame == 1);
+    assert(!kl_frame_ready()); assert(kl_frame == 1 && kl_proposal == 2);
+    control[2] = htonl(2); assert(write(sockets[1], control, 12) == 12);
+    assert(kl_frame_ready()); assert(kl_frame == 2);
+    control[2] = htonl(99); assert(write(sockets[1], control, 12) == 12);
+    assert(!kl_frame_ready()); assert(kl_failed);
+    close(sockets[1]); kl_shutdown(); assert(!kl_frame && !kl_peer_frame);
+}
 int main(void) {
     char temporary[] = "/tmp/kl-transport-XXXXXX"; test_directory = mkdtemp(temporary); assert(test_directory);
     char config[4096]; snprintf(config, sizeof(config), "%s/kl-link-session.cfg", test_directory);
     FILE *f = fopen(config, "w"); assert(f);
     fputs("0 127.0.0.1 0123456789abcdef0123456789abcdef WIRELESS\n", f); fclose(f);
     kl_parent = test_environment;
+    test_frame_pause();
     run_case(0); run_case(1); run_case(2); run_case(3);
     starts = stops = disconnects = 0;
     kl_role = 1; kl_started = true; kl_failed = false;

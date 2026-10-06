@@ -35,6 +35,7 @@ static unsigned char kl_rx[KL_MAX_PACKET + 4];
 static size_t kl_rx_size, kl_queued;
 static struct kl_chunk *kl_head, *kl_tail;
 static uint64_t kl_began, kl_attempt, kl_connected_at;
+static uint64_t kl_frame, kl_proposal, kl_peer_frame, kl_waiting_since;
 
 static uint64_t kl_now(void) {
     struct timespec ts;
@@ -74,6 +75,7 @@ static void kl_shutdown(void) {
     kl_close_sockets();
     kl_enabled = kl_authenticated = kl_failed = kl_audio_muted = false;
     kl_connecting = 0;
+    kl_frame = kl_proposal = kl_peer_frame = kl_waiting_since = 0;
     memset(&kl_callbacks, 0, sizeof(kl_callbacks));
 }
 static bool kl_nonblocking(int fd) {
@@ -129,7 +131,7 @@ static uint32_t kl_protocol(void) {
 }
 static void kl_handshake(void) {
     unsigned char hello[41];
-    memcpy(hello, "KLR2", 4); memcpy(hello + 4, kl_key, 32); hello[36] = (unsigned char)kl_role;
+    memcpy(hello, "KLR3", 4); memcpy(hello + 4, kl_key, 32); hello[36] = (unsigned char)kl_role;
     uint32_t protocol = htonl(kl_protocol()); memcpy(hello+37, &protocol, 4);
     kl_connected_at = kl_now();
     kl_enqueue(hello, sizeof(hello), false);
@@ -138,7 +140,7 @@ static void kl_parse(void) {
     if (!kl_authenticated) {
         if (kl_rx_size < 41) return;
         uint32_t protocol; memcpy(&protocol, kl_rx+37, 4);
-        if (memcmp(kl_rx, "KLR2", 4) || memcmp(kl_rx+4, kl_key, 32) || kl_rx[36] != 1-kl_role || ntohl(protocol) != kl_protocol()) {
+        if (memcmp(kl_rx, "KLR3", 4) || memcmp(kl_rx+4, kl_key, 32) || kl_rx[36] != 1-kl_role || ntohl(protocol) != kl_protocol()) {
             kl_fail("Sala incompatível. Use a mesma versão do KL Play nos dois celulares."); return;
         }
         kl_rx_size -= 41; memmove(kl_rx, kl_rx+41, kl_rx_size);
@@ -152,9 +154,18 @@ static void kl_parse(void) {
     unsigned delivered = 0;
     while (kl_rx_size >= 4 && delivered++ < 32 && !kl_failed) {
         uint32_t size; memcpy(&size, kl_rx, 4); size = ntohl(size);
+        bool frame_control = size == 0x80000008u;
+        if (frame_control) size = 8;
         if (!size || size > KL_MAX_PACKET) { kl_fail("Pacote de rede inválido."); return; }
         if (kl_rx_size < size + 4) break;
-        kl_callbacks.receive(kl_rx+4, size, (uint16_t)(1-kl_role));
+        if (frame_control) {
+            uint32_t hi, lo; memcpy(&hi, kl_rx+4, 4); memcpy(&lo, kl_rx+8, 4);
+            uint64_t frame = ((uint64_t)ntohl(hi) << 32) | ntohl(lo);
+            if (!frame || frame < kl_peer_frame || frame > kl_frame + 2) {
+                kl_fail("Sincronização inválida. Reabra o jogo nos dois celulares."); return;
+            }
+            kl_peer_frame = frame;
+        } else kl_callbacks.receive(kl_rx+4, size, (uint16_t)(1-kl_role));
         if (kl_failed) return;
         kl_rx_size -= size+4; memmove(kl_rx, kl_rx+size+4, kl_rx_size);
     }
@@ -209,6 +220,40 @@ static void kl_tick(void) {
     }
     kl_poll();
     if (kl_started && !kl_failed && kl_callbacks.poll) kl_callbacks.poll();
+}
+/* Announce a frame once. A paused peer stops proposing frames, so neither
+ * machine can build a backlog of gameplay to replay after resume. Core packets
+ * continue to be delivered on this thread while waiting. */
+static bool kl_frame_ready(void) {
+    if (!kl_enabled) return true;
+    if (kl_failed || !kl_started) return false;
+    if (kl_proposal == kl_frame) {
+        uint32_t message[3];
+        kl_proposal = kl_frame + 1;
+        message[0] = htonl(0x80000008u);
+        message[1] = htonl((uint32_t)(kl_proposal >> 32));
+        message[2] = htonl((uint32_t)kl_proposal);
+        kl_enqueue(message, sizeof(message), false);
+    }
+    uint64_t deadline = kl_now() + 8;
+    do {
+        kl_poll();
+        if (kl_failed) return false;
+        if (kl_peer_frame >= kl_proposal) {
+            kl_frame = kl_proposal;
+            if (kl_waiting_since) kl_status("Cabo GBA sincronizado • 2 jogadores.");
+            kl_waiting_since = 0;
+            return true;
+        }
+        if (kl_fd < 0) return false;
+        fd_set readable; FD_ZERO(&readable); FD_SET(kl_fd, &readable);
+        struct timeval timeout = {0, 1000};
+        select(kl_fd+1, &readable, NULL, NULL, &timeout);
+    } while (kl_now() < deadline);
+    if (!kl_waiting_since) kl_waiting_since = kl_now();
+    if (kl_now() - kl_waiting_since >= 500)
+        kl_status("Aguardando o outro jogador • pausa ou rede lenta.");
+    return false;
 }
 static bool kl_register(const struct retro_netpacket_callback *callbacks) {
     const char *directory = NULL;

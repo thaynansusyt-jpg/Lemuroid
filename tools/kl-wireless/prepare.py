@@ -7,7 +7,7 @@ changes = {
     "void retro_deinit(void)": '#include "kl-packets.h"\n\nvoid retro_deinit(void)',
     "   audio_batch_cb = cb;": "   kl_audio_parent = cb;\n   audio_batch_cb = kl_audio_batch;",
     "   environ_cb = cb;": "   kl_parent = cb;\n   environ_cb = kl_environment;",
-    "void retro_run(void)\n{": "void retro_run(void)\n{\n   kl_tick();",
+    "void retro_run(void)\n{": "void retro_run(void)\n{\n   kl_tick();\n   if (!kl_frame_ready()) { video_cb(NULL, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBA_SCREEN_WIDTH * 2); return; }",
     "void retro_unload_game(void)\n{": "void retro_unload_game(void)\n{\n   kl_shutdown();",
     "void retro_deinit(void)\n{": "void retro_deinit(void)\n{\n   kl_shutdown();",
 }

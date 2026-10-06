@@ -202,6 +202,8 @@ class BaseGameScreenViewModel(
         retroGameView.initialize(applicationContext, game, systemCoreConfig, gameLoader, requestLoadSave)
     }
 
+    val klEditingScreens = kotlinx.coroutines.flow.MutableStateFlow(false)
+
     fun showEditControls(show: Boolean) {
         touchControls.showEditControls(show)
     }
