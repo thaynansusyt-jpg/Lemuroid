@@ -167,7 +167,9 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
                 selectedGameState.value = game
             }
 
+            val clickSound = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlMenuClick()
             val onGameClick = { game: Game ->
+                clickSound()
                 gameInteractor.onGamePlay(game)
             }
 

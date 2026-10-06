@@ -284,12 +284,14 @@ private fun MenuEditTouchControls(
     val showEditControls = viewModel.isEditControlShown().collectAsState(false)
     if (!showEditControls.value) return
     var showSkinEditor by rememberSaveable { mutableStateOf(false) }
+    var editorOrientation by rememberSaveable { mutableStateOf(viewModel.touchControlsOrientation.name) }
     if (showSkinEditor) {
         KlSkinEditor(
             initial = touchControllerSettings,
+            orientationName = editorOrientation,
             onClose = { showSkinEditor = false },
             onSave = {
-                viewModel.updateTouchControllerSettings(it)
+                viewModel.updateTouchControllerSettings(it, TouchControllerSettingsManager.Orientation.valueOf(editorOrientation))
                 showSkinEditor = false
             },
         )
@@ -326,7 +328,7 @@ private fun MenuEditTouchControls(
                     com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlScreenOptions(viewModel.klCoreName)
                     Text(text = "Skin dos controles")
                     Text(text = "Salva para este console e esta orientação da tela.")
-                    TextButton(onClick = { showSkinEditor = true }) {
+                    TextButton(onClick = { editorOrientation = viewModel.touchControlsOrientation.name; showSkinEditor = true }) {
                         Text("Criar / editar minha skin")
                     }
                     val skinContext = LocalContext.current

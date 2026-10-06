@@ -1,4 +1,4 @@
-name: Build KL Play SEGA Edition
+name: Build KL Play Definitive candidate
 
 on:
   workflow_dispatch:
@@ -93,6 +93,50 @@ jobs:
           cp kl-link-android/mgba_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_mgba_link.so
           printf '%s\n' 'mGBA Wi-Fi Link: Aelvryx/mgba-wifi-link@9e919b0cfbb93af7d1171570dfc6745d00eeebab' > "$RUNNER_TEMP/kl-link-source.txt"
 
+      - name: Check out pinned Pokemon wireless core
+        uses: actions/checkout@v4
+        with:
+          repository: libretro/gpsp
+          ref: 5819380c2ffb0900219d700a382ee68c464ebb99
+          path: kl-wireless-source
+
+      - name: Verify and build Pokemon wireless adapter
+        run: |
+          set -euo pipefail
+          python3 tools/kl-wireless/prepare.py kl-wireless-source
+          gcc -O1 -fsanitize=address,undefined -I kl-wireless-source/libretro/libretro-common/include -I tools/kl-wireless tools/kl-wireless/test-transport.c -o /tmp/kl-wireless-test
+          /tmp/kl-wireless-test
+          toolchain="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          make -C kl-wireless-source -j2 platform=arm64 \
+            CC="$toolchain/aarch64-linux-android23-clang" \
+            CXX="$toolchain/aarch64-linux-android23-clang++"
+          cp kl-wireless-source/gpsp_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_gpsp_link.so
+          printf '%s\n' 'gpSP: libretro/gpsp@5819380c2ffb0900219d700a382ee68c464ebb99 + tools/kl-wireless/prepare.py' >> "$RUNNER_TEMP/kl-link-source.txt"
+
+      - name: Check out pinned GB and GBC cable core
+        uses: actions/checkout@v4
+        with:
+          repository: libretro/gambatte-libretro
+          ref: d9d6cd06382d1ced30de34d56d3609452323dab1
+          path: kl-gb-source
+
+      - name: Verify real GB serial hardware and build Android cable
+        run: |
+          set -euo pipefail
+          python3 tools/kl-gb/prepare.py kl-gb-source
+          g++ -std=c++17 -O1 -pthread -fsanitize=address,undefined -I tools/kl-gb tools/kl-gb/test-socket.cpp -o /tmp/kl-gb-socket-test
+          /tmp/kl-gb-socket-test
+          make -C kl-gb-source -j2 HAVE_NETWORK=1
+          gcc -O1 -I kl-gb-source/libgambatte/libretro-common/include tools/kl-gb/test-core.c -ldl -o /tmp/kl-gb-core-test
+          python3 tools/kl-gb/test-core.py kl-gb-source/gambatte_libretro.so /tmp/kl-gb-core-test
+          make -C kl-gb-source clean
+          toolchain="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          make -C kl-gb-source -j2 HAVE_NETWORK=1 platform=unix \
+            CC="$toolchain/aarch64-linux-android23-clang" \
+            CXX="$toolchain/aarch64-linux-android23-clang++"
+          cp kl-gb-source/gambatte_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_gambatte_link.so
+          printf '%s\n' 'Gambatte: libretro/gambatte-libretro@d9d6cd06382d1ced30de34d56d3609452323dab1 + tools/kl-gb/prepare.py' >> "$RUNNER_TEMP/kl-link-source.txt"
+
       - name: Ler versao do aplicativo
         id: version
         run: |
@@ -180,7 +224,7 @@ jobs:
         run: |
           set -euo pipefail
           if ! gh release view "v$KL_VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "v$KL_VERSION" public-apk/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'KL Play 0.5.0s Plus — Evento SEGA Edition' --notes-file docs/SEGA-RELEASE.md --prerelease
+            gh release create "v$KL_VERSION" public-apk/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'KL Play 1.0.0 — Candidata da Definitive Edition' --notes-file docs/DEFINITIVE-RELEASE.md --prerelease
           fi
 
       - uses: actions/upload-artifact@v4
@@ -192,7 +236,7 @@ jobs:
           retention-days: 14
 
       - name: Replace old releases after website switches download
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' && !contains(steps.version.outputs.version, 'rc')
         timeout-minutes: 10
         env:
           GH_TOKEN: ${{ github.token }}

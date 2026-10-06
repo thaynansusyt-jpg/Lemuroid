@@ -210,8 +210,13 @@ class BaseGameScreenViewModel(
         return touchControls.isEditControlsShown()
     }
 
-    fun updateTouchControllerSettings(touchControllerSettings: TouchControllerSettingsManager.Settings) {
-        touchControls.updateTouchControllerSettings(touchControllerSettings)
+    val touchControlsOrientation get() = touchControls.currentOrientation
+
+    fun updateTouchControllerSettings(
+        touchControllerSettings: TouchControllerSettingsManager.Settings,
+        orientation: TouchControllerSettingsManager.Orientation = touchControls.currentOrientation,
+    ) {
+        touchControls.updateTouchControllerSettings(touchControllerSettings, orientation)
     }
 
     fun resetTouchControls() {

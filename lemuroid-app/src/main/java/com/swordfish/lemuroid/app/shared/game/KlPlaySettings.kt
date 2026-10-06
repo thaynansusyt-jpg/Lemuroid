@@ -4,6 +4,8 @@ import android.content.Context
 import com.swordfish.lemuroid.lib.core.CoreVariable
 
 object KlPlaySettings {
+    const val CPU_3DS = "kl_3ds_cpu_scale"
+    const val CLICK_SOUND = "kl_click_sound"
     const val SPEED = "fast_forward_speed"
     const val SIMPLE_FILTER = "simple_filter"
     const val NATIVE_RESOLUTION = "native_resolution"
@@ -24,11 +26,19 @@ object KlPlaySettings {
         val layout = preferences(context).getString(key, "DEFAULT") ?: "DEFAULT"
         overrides.putAll(screenOptions(core, layout, preferences(context).getInt(NDS_RATIO, 2)))
         if (core == "citra") {
+            val cpu = preferences(context).getInt(CPU_3DS, 0)
+            if (cpu in listOf(50, 75, 100, 125, 150, 200)) overrides["citra_cpu_scale"] = if (cpu == 100) "100% (Default)" else "${cpu}%"
             if (enabled(context, NATIVE_RESOLUTION)) overrides["citra_resolution_factor"] = "1x (Native)"
             if (enabled(context, SHADER_CACHE)) overrides["citra_use_hw_shader_cache"] = "enabled"
         }
         if (core == "ppsspp" && enabled(context, NATIVE_RESOLUTION)) {
             overrides["ppsspp_internal_resolution"] = "480x272"
+        }
+        if (com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession.active && core == "gpsp") {
+            val mode = com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession.launch?.mode
+            overrides["gpsp_serial"] = if (mode == "WIRELESS") "rfu" else "mul_poke"
+            // No frame skipping while serial timing is active.
+            overrides["gpsp_frameskip"] = "disabled"
         }
         return original.filterNot { it.key in overrides } + overrides.map { CoreVariable(it.key, it.value) }
     }

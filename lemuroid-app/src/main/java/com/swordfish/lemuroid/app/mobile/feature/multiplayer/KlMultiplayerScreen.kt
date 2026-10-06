@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.swordfish.lemuroid.app.shared.multiplayer.KlRoomService
 import com.swordfish.lemuroid.app.shared.multiplayer.KlWifiRoom
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun KlMultiplayerScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -38,6 +42,7 @@ fun KlMultiplayerScreen(modifier: Modifier = Modifier) {
     var name by rememberSaveable { mutableStateOf(prefs.getString("name", "Jogador").orEmpty()) }
     var ip by rememberSaveable { mutableStateOf(prefs.getString("ip", "").orEmpty()) }
     var cable by rememberSaveable { mutableStateOf(prefs.getBoolean("cable", false)) }
+    var mode by rememberSaveable { mutableStateOf(prefs.getString("gba_mode", "MULTIPAK") ?: "MULTIPAK") }
     var error by remember { mutableStateOf<String?>(null) }
     val connected = state.phase == KlWifiRoom.Phase.HOSTING || state.phase == KlWifiRoom.Phase.JOINED
     val connecting = state.phase == KlWifiRoom.Phase.CONNECTING
@@ -55,16 +60,26 @@ fun KlMultiplayerScreen(modifier: Modifier = Modifier) {
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Salas Wi-Fi • até 3 pessoas", style = MaterialTheme.typography.titleLarge)
-                Text("Cabo GBA experimental • 2 jogadores • Android de 64 bits. A sala ainda comporta 3 pessoas, mas o cabo funciona com apenas 2.")
+                Text("Cabo GB, GBC e GBA • testes com 2 jogadores • Android de 64 bits. A sala ainda comporta 3 pessoas, mas o cabo funciona com apenas 2.")
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Usar cabo Wi-Fi nos jogos de GBA", modifier = Modifier.weight(1f))
+                    Text("Usar cabo Wi-Fi no GB, GBC e GBA", modifier = Modifier.weight(1f))
                     Switch(checked = cable, onCheckedChange = {
                         cable = it
                         prefs.edit().putBoolean("cable", it).apply()
                     })
                 }
-                Text("1. Crie a sala e conecte o segundo celular.\n2. Ative o cabo nos dois aparelhos.\n3. Na biblioteca, abram a mesma ROM de GBA.\n4. Esperem a confirmação de sincronização e escolham a opção multiplayer dentro do jogo.")
-                Text("O primeiro teste é de cabo Multi-Pak: Mario Kart: Super Circuit é um bom ponto de partida. Pokémon ainda precisa de teste de troca e batalha; adaptador sem fio não está incluído. DS, 3DS e outros sistemas continuam singleplayer.")
+                Text("1. Ative o cabo e escolha o mesmo modo nos dois aparelhos.\n2. Crie a sala e conecte o segundo celular.\n3. Na biblioteca, abram a mesma versão do jogo.\n4. Esperem a confirmação de conexão e escolham a opção multiplayer dentro do jogo.")
+                Text("Conexão do GBA", style = MaterialTheme.typography.titleMedium)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("MULTIPAK" to "Multi-Pak", "POKEMON" to "Pokémon • cabo", "WIRELESS" to "Adaptador sem fio").forEach { (id, label) ->
+                        FilterChip(selected = mode == id, enabled = !connected && !connecting, onClick = {
+                            mode = id; prefs.edit().putString("gba_mode", id).apply()
+                        }, label = { Text(label) })
+                    }
+                }
+                Text("Os dois aparelhos devem escolher o mesmo modo antes de criar a sala. Pokémon de GBA: teste cabo; Quetzal: teste adaptador sem fio. Compatibilidade com hacks ainda precisa de teste.")
+                Text("GB/GBC usam o cabo do Gambatte. DS e 3DS ainda não usam esta sala.")
+                Text("O primeiro teste é de cabo Multi-Pak: Mario Kart: Super Circuit é um bom ponto de partida. Os modos de Pokémon e adaptador sem fio precisam de testes de troca e batalha. DS e 3DS continuam singleplayer nesta candidata.")
                 Text("Mantenha os dois jogos abertos; abrir menus ou apagar a tela pode interromper o cabo. Uma cópia do save anterior é guardada automaticamente. Estados automáticos, cheats e fast forward ficam desativados nesta sessão. Os saves feitos dentro do jogo continuam separados por aparelho.")
             }
         }

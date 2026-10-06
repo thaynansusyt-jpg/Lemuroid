@@ -1,5 +1,13 @@
 package com.swordfish.lemuroid.app.mobile.feature.game
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.swordfish.touchinput.radial.KlFontStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -36,47 +44,66 @@ fun KlSkinEditor(
     initial: TouchControllerSettingsManager.Settings,
     onClose: () -> Unit,
     onSave: (TouchControllerSettingsManager.Settings) -> Unit,
+    orientationName: String? = null,
 ) {
-    var fill by rememberSaveable { mutableStateOf(skinHex(initial.customFill)) }
-    var pressed by rememberSaveable { mutableStateOf(skinHex(initial.customPressed)) }
-    var text by rememberSaveable { mutableStateOf(skinHex(initial.customText)) }
-    var pressedText by rememberSaveable { mutableStateOf(skinHex(initial.customPressedText)) }
-    var baseColor by rememberSaveable { mutableStateOf(skinHex(initial.customBaseColor)) }
-    var outline by rememberSaveable { mutableStateOf(skinHex(initial.customOutline)) }
-    var opacity by rememberSaveable { mutableStateOf(initial.customOpacity.coerceIn(0.2f, 1f)) }
-    var baseOpacity by rememberSaveable { mutableStateOf(initial.customBaseOpacity.coerceIn(0f, 1f)) }
-    var font by rememberSaveable { mutableStateOf(initial.customFont) }
-    var base by rememberSaveable { mutableStateOf(initial.customBase) }
-    var corners by rememberSaveable { mutableStateOf(initial.customCornerRadius.coerceIn(0f, 36f)) }
-    var border by rememberSaveable { mutableStateOf(initial.customOutlineWidth.coerceIn(0f, 3f)) }
-    var labelScale by rememberSaveable { mutableStateOf(initial.customLabelScale.coerceIn(0.6f, 1.4f)) }
-    var pressScale by rememberSaveable { mutableStateOf(initial.customPressScale.coerceIn(0.85f, 1f)) }
-    var bold by rememberSaveable { mutableStateOf(initial.customBold) }
-    var shadow by rememberSaveable { mutableStateOf(initial.customShadow) }
+    val snapshot = remember { initial }
+    var fill by rememberSaveable { mutableStateOf(skinHex(snapshot.customFill)) }
+    var pressed by rememberSaveable { mutableStateOf(skinHex(snapshot.customPressed)) }
+    var text by rememberSaveable { mutableStateOf(skinHex(snapshot.customText)) }
+    var pressedText by rememberSaveable { mutableStateOf(skinHex(snapshot.customPressedText)) }
+    var baseColor by rememberSaveable { mutableStateOf(skinHex(snapshot.customBaseColor)) }
+    var outline by rememberSaveable { mutableStateOf(skinHex(snapshot.customOutline)) }
+    var opacity by rememberSaveable { mutableStateOf(snapshot.customOpacity.coerceIn(0.2f, 1f)) }
+    var baseOpacity by rememberSaveable { mutableStateOf(snapshot.customBaseOpacity.coerceIn(0f, 1f)) }
+    var font by rememberSaveable { mutableStateOf(snapshot.customFont) }
+    var base by rememberSaveable { mutableStateOf(snapshot.customBase) }
+    var corners by rememberSaveable { mutableStateOf(snapshot.customCornerRadius.coerceIn(0f, 36f)) }
+    var border by rememberSaveable { mutableStateOf(snapshot.customOutlineWidth.coerceIn(0f, 6f)) }
+    var labelScale by rememberSaveable { mutableStateOf(snapshot.customLabelScale.coerceIn(0.6f, 1.4f)) }
+    var pressScale by rememberSaveable { mutableStateOf(snapshot.customPressScale.coerceIn(0.85f, 1f)) }
+    var bold by rememberSaveable { mutableStateOf(snapshot.customBold) }
+    var shadow by rememberSaveable { mutableStateOf(snapshot.customShadow) }
     var tab by rememberSaveable { mutableStateOf(0) }
     var discard by rememberSaveable { mutableStateOf(false) }
+    val clickSound = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlMenuClick()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var importing by remember { mutableStateOf(false) }
+    var fontMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    val importFont = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch {
+            importing = true
+            try {
+                font = withContext(Dispatchers.IO) { KlFontStore.importFont(context, uri) }
+                fontMessage = "Fonte importada. Salve a skin para aplicar."
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (failure: Exception) { fontMessage = failure.message ?: "Não foi possível importar a fonte." }
+            finally { importing = false }
+        }
+    }
     val valid = listOf(fill, pressed, text, pressedText, baseColor, outline).all { skinColor(it) != null }
-    val draft = initial.copy(
-        skin = "CUSTOM", customFill = skinColor(fill) ?: initial.customFill,
-        customPressed = skinColor(pressed) ?: initial.customPressed,
-        customText = skinColor(text) ?: initial.customText,
-        customPressedText = skinColor(pressedText) ?: initial.customPressedText,
+    val draft = snapshot.copy(
+        skin = "CUSTOM", customFill = skinColor(fill) ?: snapshot.customFill,
+        customPressed = skinColor(pressed) ?: snapshot.customPressed,
+        customText = skinColor(text) ?: snapshot.customText,
+        customPressedText = skinColor(pressedText) ?: snapshot.customPressedText,
         customOpacity = opacity, customFont = font, customBase = base,
-        customBaseColor = skinColor(baseColor) ?: initial.customBaseColor,
+        customBaseColor = skinColor(baseColor) ?: snapshot.customBaseColor,
         customBaseOpacity = baseOpacity, customCornerRadius = corners,
-        customOutline = skinColor(outline) ?: initial.customOutline,
+        customOutline = skinColor(outline) ?: snapshot.customOutline,
         customOutlineWidth = border, customLabelScale = labelScale,
         customBold = bold, customShadow = shadow, customPressScale = pressScale,
     )
-    val dirty = draft.copy(skin = initial.skin) != initial || !valid
-    fun close() { if (dirty) discard = true else onClose() }
-    val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.90f
+    val dirty = draft.copy(skin = snapshot.skin) != snapshot || !valid
+    fun close() { if (importing) return; if (dirty) discard = true else onClose() }
+    val landscape = LocalConfiguration.current.screenWidthDp > LocalConfiguration.current.screenHeightDp
+    val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.95f
     Dialog(
         onDismissRequest = { close() },
         properties = DialogProperties(dismissOnClickOutside = false, usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(0.95f).widthIn(max = 560.dp).heightIn(max = maxHeight).imePadding(),
+            modifier = Modifier.fillMaxWidth(0.95f).widthIn(max = if (landscape) 840.dp else 560.dp).heightIn(max = maxHeight).imePadding(),
             shape = RoundedCornerShape(24.dp),
             tonalElevation = 6.dp,
         ) {
@@ -84,13 +111,13 @@ fun KlSkinEditor(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("Estúdio de skins KL", style = MaterialTheme.typography.titleLarge)
-                        Text("Prévia antes de salvar", style = MaterialTheme.typography.bodySmall)
+                        Text(if ((orientationName ?: if (landscape) "LANDSCAPE" else "PORTRAIT") == "LANDSCAPE") "Skin horizontal • prévia ao vivo" else "Skin vertical • prévia ao vivo", style = MaterialTheme.typography.bodySmall)
                     }
                     IconButton(onClick = { close() }) { Icon(Icons.Default.Close, "Fechar editor") }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    listOf("Cores", "Base", "Letras").forEachIndexed { index, title ->
-                        TextButton(onClick = { tab = index }) {
+                    listOf("Cores", "Base", "Letras", "Modelos").forEachIndexed { index, title ->
+                        TextButton(onClick = { clickSound(); tab = index }) {
                             Text(title, fontWeight = if (tab == index) FontWeight.Bold else FontWeight.Normal)
                         }
                     }
@@ -125,9 +152,10 @@ fun KlSkinEditor(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     RadioButton(selected = base == id, onClick = {
                                         base = id
-                                        corners = when (id) { "RETRO" -> 4f; "MINIMAL" -> 12f; "PORTABLE" -> 20f; else -> 36f }
-                                        baseOpacity = when (id) { "MINIMAL" -> 0f; "PORTABLE" -> 0.85f; else -> 0.12f }
-                                        shadow = id != "MINIMAL"
+                                        corners = when (id) { "RETRO" -> 4f; "MINIMAL" -> 12f; "PORTABLE" -> 20f; "OUTLINE" -> 36f; else -> 36f }
+                                        baseOpacity = when (id) { "MINIMAL", "OUTLINE" -> 0f; "PORTABLE" -> 0.85f; else -> 0.12f }
+                                        shadow = id !in listOf("MINIMAL", "OUTLINE")
+                                        if (id == "OUTLINE") { opacity = 0.2f; border = 2f; outline = "#FFFFFF" }
                                     })
                                     Text(name)
                                 }
@@ -136,11 +164,11 @@ fun KlSkinEditor(
                             SkinSlider("Opacidade da base", baseOpacity, 0f..1f, "${(baseOpacity * 100).toInt()}%") { baseOpacity = it }
                             SkinSlider("Cantos dos botões", corners, 0f..36f, if (corners >= 36f) "Redondos" else "${corners.toInt()} dp") { corners = it }
                             SkinColorField("Cor do contorno", outline) { outline = it }
-                            SkinSlider("Contorno", border, 0f..3f, "%.1f dp".format(border)) { border = it }
+                            SkinSlider("Contorno", border, 0f..6f, "%.1f dp".format(border)) { border = it }
                             SkinSlider("Efeito ao pressionar", pressScale, 0.85f..1f, "${(pressScale * 100).toInt()}% do tamanho") { pressScale = it }
                             SkinToggle("Sombras nos controles", shadow) { shadow = it }
                         }
-                        else -> {
+                        2 -> {
                             Text("Fontes do Android; a aparência pode variar conforme o celular.")
                             LemuroidPadTheme.fontOptions.forEach { (id, name) ->
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -150,9 +178,31 @@ fun KlSkinEditor(
                                     }
                                 }
                             }
+                            OutlinedButton(enabled = !importing, onClick = { importFont.launch(arrayOf("*/*")) }) {
+                                Text(if (importing) "Importando…" else "Importar fonte TTF / OTF")
+                            }
+                            if (font.startsWith("FILE:")) Text("Fonte importada selecionada", fontFamily = LemuroidPadTheme.fontFor(font))
+                            fontMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                             SkinSlider("Tamanho das letras", labelScale, 0.6f..1.4f, "${(labelScale * 100).toInt()}%") { labelScale = it }
                             SkinToggle("Letras em negrito", bold) { bold = it }
                             Text("As setas continuam como ícones.")
+                        }
+                        else -> {
+                            Text("Escolha um ponto de partida; depois ajuste cada detalhe.")
+                            listOf("KL Azul", "Contorno portátil", "Retro", "Sonic", "Discreto").forEach { name ->
+                                OutlinedButton(modifier = Modifier.fillMaxWidth(), enabled = !importing, onClick = {
+                                    base = "NORMAL"; corners = 36f; border = 0f; opacity = 0.8f
+                                    baseOpacity = 0.12f; shadow = true; pressScale = 0.94f
+                                    fill = "#168FC4"; pressed = "#88DEFF"; text = "#FFFFFF"
+                                    pressedText = "#083D55"; outline = "#FFFFFF"; baseColor = fill
+                                    when (name) {
+                                        "Contorno portátil" -> { base = "OUTLINE"; opacity = 0.2f; baseOpacity = 0f; border = 2f; shadow = false }
+                                        "Retro" -> { base = "RETRO"; corners = 4f; fill = "#303B4E"; baseColor = fill; font = "MONO" }
+                                        "Sonic" -> { fill = "#0758D8"; pressed = "#FFD342"; pressedText = "#123A75"; outline = "#FFD342"; border = 2f; baseColor = fill }
+                                        "Discreto" -> { base = "MINIMAL"; opacity = 0.35f; baseOpacity = 0f; shadow = false }
+                                    }
+                                }) { Text(name) }
+                            }
                         }
                     }
                     Text("A skin fica salva para este console e esta orientação.", style = MaterialTheme.typography.bodySmall)
@@ -160,7 +210,7 @@ fun KlSkinEditor(
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = { close() }) { Text("Cancelar") }
-                    Button(enabled = valid, onClick = { onSave(draft) }) { Text("Salvar skin") }
+                    Button(enabled = valid && !importing, onClick = { clickSound(); onSave(draft) }) { Text("Salvar skin") }
                 }
             }
         }

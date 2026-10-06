@@ -41,6 +41,7 @@ private fun LemuroidNavigationBar(
     currentRoute: MainRoute?,
     navController: NavHostController,
 ) {
+    val clickSound = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlMenuClick()
     NavigationBar(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(28.dp)),
@@ -58,7 +59,8 @@ private fun LemuroidNavigationBar(
                         contentDescription = stringResource(destination.titleId),
                     )
                 },
-                label = { Text(stringResource(destination.titleId)) },
+                label = { Text(stringResource(destination.titleId), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall) },
+                alwaysShowLabel = false,
                 selected = isSelected,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
@@ -66,6 +68,7 @@ private fun LemuroidNavigationBar(
                     indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
                 onClick = {
+                    clickSound()
                     navController.navigate(destination.route.route) {
                         // Pop up to the start destination of the graph to
                         // avoid building up a large stack of destinations

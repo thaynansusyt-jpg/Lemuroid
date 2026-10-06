@@ -23,7 +23,7 @@ class LemuroidPadTheme(
         if (settings!!.customCornerRadius >= 36f) Dp.Infinity else settings.customCornerRadius.coerceIn(0f, 36f).dp
     } else Dp.Infinity
     val outlineColor = if (skin == "SONIC") Color(0xFFFFD342).copy(alpha = 0.8f) else if (custom) Color(settings!!.customOutline) else Color.Transparent
-    val outlineWidth = if (skin == "SONIC") 2.dp else if (custom) settings!!.customOutlineWidth.coerceIn(0f, 3f).dp else 0.dp
+    val outlineWidth = if (skin == "SONIC") 2.dp else if (custom) settings!!.customOutlineWidth.coerceIn(0f, 6f).dp else 0.dp
     private val baseColor = if (custom) Color(settings!!.customBaseColor) else null
     private val baseOpacity = if (custom) settings!!.customBaseOpacity.coerceIn(0f, 1f) else 0f
     private val shadows = !custom || settings!!.customShadow
@@ -53,7 +53,9 @@ class LemuroidPadTheme(
             "CURSIVE" to "Cursiva", "CONDENSED" to "Compacta", "LIGHT" to "Leve",
             "MEDIUM" to "Moderna", "THIN" to "Fina",
         )
-        fun fontFor(id: String): FontFamily = when (id) {
+        fun fontFor(id: String): FontFamily {
+            KlFontStore.typeface(id)?.let { return FontFamily(it) }
+            return when (id) {
             "SERIF" -> FontFamily.Serif
             "MONO" -> FontFamily.Monospace
             "CURSIVE" -> FontFamily.Cursive
@@ -62,10 +64,12 @@ class LemuroidPadTheme(
             "MEDIUM" -> FontFamily(Typeface.create("sans-serif-medium", Typeface.NORMAL))
             "THIN" -> FontFamily(Typeface.create("sans-serif-thin", Typeface.NORMAL))
             else -> FontFamily.SansSerif
+            }
         }
         val baseOptions = listOf(
             "NORMAL" to "Normal KL", "RETRO" to "Retro quadrado",
             "MINIMAL" to "Minimalista", "PORTABLE" to "Console portátil",
+            "OUTLINE" to "Contorno portátil • inspirado no Citra MMJ",
         )
 
         fun fromSettings(settings: TouchControllerSettingsManager.Settings) =

@@ -82,21 +82,29 @@ class GameViewModelTouchControls(
         return hapticFeedbackMode
     }
 
-    fun updateTouchControllerSettings(touchControllerSettings: TouchControllerSettingsManager.Settings) {
+    val currentOrientation get() = screenOrientation.value
+
+    fun updateTouchControllerSettings(
+        touchControllerSettings: TouchControllerSettingsManager.Settings,
+        orientation: TouchControllerSettingsManager.Orientation = screenOrientation.value,
+    ) {
+        val controller = touchControlId.value
         scope.launch {
             touchControllerSettingsManager.storeSettings(
-                touchControlId.value,
-                screenOrientation.value,
+                controller,
+                orientation,
                 touchControllerSettings,
             )
         }
     }
 
     fun resetTouchControls() {
+        val controller = touchControlId.value
+        val orientation = screenOrientation.value
         scope.launch {
             touchControllerSettingsManager.resetSettings(
-                touchControlId.value,
-                screenOrientation.value,
+                controller,
+                orientation,
             )
         }
     }

@@ -36,26 +36,35 @@ class GameLauncher(
         val room = KlRoomService.room.state.value
         val cable = activity.getSharedPreferences("kl_room_ui", 0).getBoolean("cable", false)
         val inRoom = room.phase in setOf(KlWifiRoom.Phase.HOSTING, KlWifiRoom.Phase.JOINED)
-        val link = if (cable && inRoom && game.systemId == "gba") {
+        val link = if (cable && inRoom && game.systemId in setOf("gba", "gb", "gbc")) {
             if (room.members.size != 2) {
-                Toast.makeText(activity, "O cabo GBA precisa de exatamente 2 pessoas na sala.", Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "O cabo Wi-Fi precisa de exatamente 2 pessoas na sala.", Toast.LENGTH_LONG).show()
                 return false
             }
-            if (!File(activity.applicationInfo.nativeLibraryDir, "libkl_mgba_link.so").isFile) {
-                Toast.makeText(activity, "Este primeiro teste do cabo GBA precisa de Android de 64 bits.", Toast.LENGTH_LONG).show()
+            val mode = activity.getSharedPreferences("kl_room_ui", 0).getString("gba_mode", "MULTIPAK")
+            val library = when {
+                game.systemId != "gba" -> "libkl_gambatte_link.so"
+                mode == "POKEMON" || mode == "WIRELESS" -> "libkl_gpsp_link.so"
+                else -> "libkl_mgba_link.so"
+            }
+            if (!File(activity.applicationInfo.nativeLibraryDir, library).isFile) {
+                Toast.makeText(activity, "O cabo Wi-Fi precisa de Android de 64 bits nesta versão.", Toast.LENGTH_LONG).show()
                 return false
             }
             KlLinkSession.Launch(
                 if (room.phase == KlWifiRoom.Phase.HOSTING) 0 else 1,
                 if (room.phase == KlWifiRoom.Phase.HOSTING) "127.0.0.1" else room.addresses.first(),
                 room.linkKey,
+                activity.getSharedPreferences("kl_room_ui", 0).getString("gba_mode", "MULTIPAK").orEmpty().takeIf { it in setOf("MULTIPAK", "POKEMON", "WIRELESS") } ?: "MULTIPAK",
             )
         } else null
 
         GlobalScope.launch {
             val system = GameSystem.findById(game.systemId)
             val coreConfig = if (link != null) {
-                system.systemCoreConfigs.first { it.coreID == CoreID.MGBA }.copy(statesSupported = false)
+                val mode = link.mode
+                val selected = if (game.systemId != "gba") CoreID.GAMBATTE else if (mode in setOf("POKEMON", "WIRELESS")) CoreID.GPSP else CoreID.MGBA
+                system.systemCoreConfigs.first { it.coreID == selected }.copy(statesSupported = false)
             } else coresSelection.getCoreConfigForSystem(system)
             gameLaunchTaskHandler.handleGameStart(activity.applicationContext)
             BaseGameActivity.launchGame(activity, coreConfig, game, loadSave && link == null, leanback, link)

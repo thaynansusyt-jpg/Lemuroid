@@ -80,7 +80,8 @@ fun LemuroidTopAppBar(
     onUpdateQueryString: (String) -> Unit,
 ) {
     val context = LocalContext.current
-    val topBarColor = BottomAppBarDefaults.containerColor
+    val clickSound = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlMenuClick()
+    val topBarColor = MaterialTheme.colorScheme.surface
 
     TopAppBar(
         title = {
@@ -104,7 +105,7 @@ fun LemuroidTopAppBar(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                IconButton(onClick = { navController.popBackStack() }) {
+                IconButton(onClick = { clickSound(); navController.popBackStack() }) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         stringResource(id = R.string.back),
@@ -134,14 +135,15 @@ fun LemuroidTopBarActions(
     operationsInProgress: Boolean,
     onHelpPressed: () -> Unit,
 ) {
+    val clickSound = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlMenuClick()
     Row {
         if (route.showBottomNavigation && route != MainRoute.SEARCH) {
-            IconButton(onClick = { navController.navigate(MainRoute.SEARCH.route) }) {
+            IconButton(onClick = { clickSound(); navController.navigate(MainRoute.SEARCH.route) }) {
                 Icon(Icons.Default.Search, stringResource(R.string.title_search))
             }
         }
         IconButton(
-            onClick = { onHelpPressed() },
+            onClick = { clickSound(); onHelpPressed() },
         ) {
             Icon(
                 Icons.Outlined.Info,
@@ -150,7 +152,7 @@ fun LemuroidTopBarActions(
         }
         if (saveSyncEnabled) {
             IconButton(
-                onClick = { SaveSyncWork.enqueueManualWork(context.applicationContext) },
+                onClick = { clickSound(); SaveSyncWork.enqueueManualWork(context.applicationContext) },
                 enabled = !operationsInProgress,
             ) {
                 Icon(
@@ -161,7 +163,7 @@ fun LemuroidTopBarActions(
         }
         if (route.showBottomNavigation) {
             IconButton(
-                onClick = { navController.navigate(MainRoute.SETTINGS.route) },
+                onClick = { clickSound(); navController.navigate(MainRoute.SETTINGS.route) },
             ) {
                 Icon(
                     Icons.Outlined.Settings,
