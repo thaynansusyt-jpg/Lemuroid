@@ -72,7 +72,7 @@ object KlPlaySettings {
             "desmume" -> mapOf("desmume_screens_layout" to when (layout) {
                 "LARGE" -> "hybrid/top"; "SIDE" -> "left/right"; "TOP" -> "top only"
                 "BOTTOM" -> "bottom only"; else -> "top/bottom"
-            }, "desmume_hybrid_layout_scale" to "disabled", "desmume_hybrid_showboth_screens" to "disabled")
+            }, "desmume_hybrid_layout_scale" to "1", "desmume_hybrid_showboth_screens" to "disabled")
             else -> emptyMap()
         }
     }
