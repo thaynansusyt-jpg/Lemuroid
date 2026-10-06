@@ -19,6 +19,7 @@
 
 #define KL_MAX_PACKET 65536u
 #define KL_MAX_QUEUE (4u * 1024u * 1024u)
+#define KL_FRAME_WINDOW 3u
 struct kl_chunk { struct kl_chunk *next; size_t size, offset; unsigned char bytes[]; };
 static retro_environment_t kl_parent;
 static retro_audio_sample_batch_t kl_audio_parent;
@@ -131,7 +132,7 @@ static uint32_t kl_protocol(void) {
 }
 static void kl_handshake(void) {
     unsigned char hello[41];
-    memcpy(hello, "KLR3", 4); memcpy(hello + 4, kl_key, 32); hello[36] = (unsigned char)kl_role;
+    memcpy(hello, "KLR4", 4); memcpy(hello + 4, kl_key, 32); hello[36] = (unsigned char)kl_role;
     uint32_t protocol = htonl(kl_protocol()); memcpy(hello+37, &protocol, 4);
     kl_connected_at = kl_now();
     kl_enqueue(hello, sizeof(hello), false);
@@ -140,7 +141,7 @@ static void kl_parse(void) {
     if (!kl_authenticated) {
         if (kl_rx_size < 41) return;
         uint32_t protocol; memcpy(&protocol, kl_rx+37, 4);
-        if (memcmp(kl_rx, "KLR3", 4) || memcmp(kl_rx+4, kl_key, 32) || kl_rx[36] != 1-kl_role || ntohl(protocol) != kl_protocol()) {
+        if (memcmp(kl_rx, "KLR4", 4) || memcmp(kl_rx+4, kl_key, 32) || kl_rx[36] != 1-kl_role || ntohl(protocol) != kl_protocol()) {
             kl_fail("Sala incompatível. Use a mesma versão do KL Play nos dois celulares."); return;
         }
         kl_rx_size -= 41; memmove(kl_rx, kl_rx+41, kl_rx_size);
@@ -161,7 +162,7 @@ static void kl_parse(void) {
         if (frame_control) {
             uint32_t hi, lo; memcpy(&hi, kl_rx+4, 4); memcpy(&lo, kl_rx+8, 4);
             uint64_t frame = ((uint64_t)ntohl(hi) << 32) | ntohl(lo);
-            if (!frame || frame < kl_peer_frame || frame > kl_frame + 2) {
+            if (!frame || frame < kl_peer_frame || frame > kl_frame + KL_FRAME_WINDOW + 1) {
                 kl_fail("Sincronização inválida. Reabra o jogo nos dois celulares."); return;
             }
             kl_peer_frame = frame;
@@ -221,9 +222,11 @@ static void kl_tick(void) {
     kl_poll();
     if (kl_started && !kl_failed && kl_callbacks.poll) kl_callbacks.poll();
 }
-/* Announce a frame once. A paused peer stops proposing frames, so neither
- * machine can build a backlog of gameplay to replay after resume. Core packets
- * continue to be delivered on this thread while waiting. */
+/* Pipeline a bounded number of frames instead of a network barrier on every
+ * display tick. Independent Android display phases must not halve game speed.
+ * Require the peer's first proposal before starting; a paused peer then limits
+ * local progress to three frames. Core packets remain ordered and callbacks
+ * stay on this thread. Never execute catch-up frames when resuming. */
 static bool kl_frame_ready(void) {
     if (!kl_enabled) return true;
     if (kl_failed || !kl_started) return false;
@@ -239,7 +242,7 @@ static bool kl_frame_ready(void) {
     do {
         kl_poll();
         if (kl_failed) return false;
-        if (kl_peer_frame >= kl_proposal) {
+        if (kl_peer_frame && kl_proposal <= kl_peer_frame + KL_FRAME_WINDOW - 1) {
             kl_frame = kl_proposal;
             if (kl_waiting_since) kl_status("Cabo GBA sincronizado • 2 jogadores.");
             kl_waiting_since = 0;

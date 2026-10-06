@@ -27,9 +27,10 @@ static void run_case(unsigned kind) {
     struct sockaddr_in address = {0}; address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); address.sin_port = htons(55343);
     assert(!connect(peer, (struct sockaddr*)&address, sizeof(address)));
-    unsigned char hello[41]; memcpy(hello, "KLR3", 4); memcpy(hello+4, kl_key, 32); hello[36] = 1; uint32_t protocol = htonl(kl_protocol()); memcpy(hello+37, &protocol, 4);
+    unsigned char hello[41]; memcpy(hello, "KLR4", 4); memcpy(hello+4, kl_key, 32); hello[36] = 1; uint32_t protocol = htonl(kl_protocol()); memcpy(hello+37, &protocol, 4);
     if (kind == 0) hello[4] ^= 1;
     if (kind == 3) hello[37] ^= 1;
+    if (kind == 4) hello[3] = '3'; // reject old per-frame-barrier clients
     // Split header deliberately: TCP is a stream, not a packet transport.
     assert(send(peer, hello, 7, MSG_NOSIGNAL) == 7); kl_tick();
     assert(!starts);
@@ -63,9 +64,14 @@ static void test_frame_pause(void) {
     assert(write(sockets[1], control, 5) == 5); assert(!kl_frame_ready());
     assert(write(sockets[1], ((char*)control)+5, 7) == 7);
     assert(kl_frame_ready()); assert(kl_frame == 1);
-    assert(!kl_frame_ready()); assert(kl_frame == 1 && kl_proposal == 2);
-    control[2] = htonl(2); assert(write(sockets[1], control, 12) == 12);
     assert(kl_frame_ready()); assert(kl_frame == 2);
+    assert(kl_frame_ready()); assert(kl_frame == KL_FRAME_WINDOW);
+    assert(!kl_frame_ready()); assert(kl_frame == KL_FRAME_WINDOW);
+    for (unsigned i=0; i<4; ++i) assert(!kl_frame_ready());
+    assert(kl_frame == KL_FRAME_WINDOW); // paused peer cannot accumulate gameplay
+    control[2] = htonl(2); assert(write(sockets[1], control, 12) == 12);
+    assert(kl_frame_ready()); assert(kl_frame == KL_FRAME_WINDOW + 1);
+    assert(!kl_frame_ready()); // resume advances one frame, never a catch-up burst
     control[2] = htonl(99); assert(write(sockets[1], control, 12) == 12);
     assert(!kl_frame_ready()); assert(kl_failed);
     close(sockets[1]); kl_shutdown(); assert(!kl_frame && !kl_peer_frame);
@@ -77,7 +83,7 @@ int main(void) {
     fputs("0 127.0.0.1 0123456789abcdef0123456789abcdef WIRELESS\n", f); fclose(f);
     kl_parent = test_environment;
     test_frame_pause();
-    run_case(0); run_case(1); run_case(2); run_case(3);
+    run_case(0); run_case(1); run_case(2); run_case(3); run_case(4);
     starts = stops = disconnects = 0;
     kl_role = 1; kl_started = true; kl_failed = false;
     kl_callbacks.stop = test_stop; kl_callbacks.disconnected = test_disconnect;

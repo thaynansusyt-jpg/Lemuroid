@@ -2,6 +2,13 @@
 
 Este APK é uma candidata para testes, não a conclusão de todos os recursos planejados para a 1.0.0. Mantém o pacote e a assinatura das versões anteriores. Instale por cima; não precisa desinstalar nem apagar os dados.
 
+## Correção de multiplayer da rc.4
+
+- Corrigida a barreira de rede por quadro introduzida na rc.3 para Pokémon/Quetzal e adaptador sem fio GBA. Agora há uma janela limitada de três quadros, que tolera diferenças no ritmo das telas dos dois celulares sem exigir confirmação de cada quadro antes de avançar.
+- Ao pausar um aparelho, o outro pode avançar até três quadros (cerca de 50 ms a 60 FPS) e então espera. A retomada não executa uma sequência de quadros acumulados. O primeiro quadro ainda exige que os dois aparelhos estejam conectados e proponham iniciar.
+- Instale a rc.4 nos dois aparelhos e recrie a sala: o protocolo é KLR4. Mantém assinatura, saves e pacote. Multi-Pak mGBA e cabo GB/GBC não foram alterados.
+- Teste de regressão usa duas instâncias do transporte com chamadas a cada 17 ms e diferença de fase de 9 ms, além dos testes de pausa, fragmentação e desconexão. Isso verifica o transporte; fluidez de Pokémon/Quetzal precisa de teste nos aparelhos físicos.
+
 ## Mudanças da rc.3
 
 - Modos Pokémon/Quetzal e adaptador sem fio GBA agora esperam a confirmação do próximo quadro pelo outro aparelho. Uma pausa ou aparelho lento faz o par esperar, em vez de acumular movimentos para reproduzir depois. A espera inicial também evita abrir um jogo adiantado em um dos aparelhos. Ambos precisam usar a rc.3: protocolo atualizado para KLR3.

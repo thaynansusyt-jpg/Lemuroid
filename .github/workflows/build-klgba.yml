@@ -108,6 +108,8 @@ jobs:
           python3 tools/kl-wireless/prepare.py kl-wireless-source
           gcc -O1 -fsanitize=address,undefined -I kl-wireless-source/libretro/libretro-common/include -I tools/kl-wireless tools/kl-wireless/test-transport.c -o /tmp/kl-wireless-test
           /tmp/kl-wireless-test
+          gcc -O1 -fsanitize=address,undefined -I kl-wireless-source/libretro/libretro-common/include -I tools/kl-wireless tools/kl-wireless/test-pacing.c -o /tmp/kl-pacing-test
+          /tmp/kl-pacing-test
           toolchain="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin"
           make -C kl-wireless-source -j2 platform=arm64 \
             CC="$toolchain/aarch64-linux-android23-clang" \
