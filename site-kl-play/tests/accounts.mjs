@@ -15,6 +15,13 @@ assert.equal((await call('profile','PUT',{revision:0,profile},token)).status,200
 assert.equal((await call('profile','PUT',{revision:0,profile:{...profile,name:'stale'}},token)).status,409);
 assert.equal((await call('profile','GET',undefined,token)).data.profile.name,'Jogador Teste');
 assert.equal((await call('profile','PUT',{revision:1,profile:{...profile,sii:{...profile.sii,ink:'bad'}}},token)).status,400);
+const sonic={...profile,sii:{...profile.sii,clothes:'sonic',badge:1},achievements:[1,2],events:['sonic_theme'],days:{'2026-10-05':{...profile.days['2026-10-05'],sonicMillis:60000,sonicSessions:1}}};
+assert.equal((await call('profile','PUT',{revision:1,profile:sonic},token)).status,200);
+const restored=(await call('profile','GET',undefined,token)).data.profile;assert.deepEqual(restored.achievements,[1,2]);assert.equal(restored.sii.badge,1);assert.equal(restored.days['2026-10-05'].sonicMillis,60000);
+assert.equal((await call('profile','PUT',{revision:2,profile:{...sonic,achievements:[1,129]}},token)).status,400);
+assert.equal((await call('profile','PUT',{revision:2,profile:{...sonic,sii:{...sonic.sii,clothes:'super_sonic'}}},token)).status,400);
+assert.equal((await call('profile','PUT',{revision:2,profile:{...sonic,events:['bad_event']}},token)).status,400);
+assert.equal((await call('profile','PUT',{revision:2,profile:{...sonic,days:{'2026-10-05':{...sonic.days['2026-10-05'],sonicMillis:999999}}}},token)).status,400);
 const b=await call('register','POST',{});const lb=await call('login','POST',{username:b.data.username,password:b.data.password});assert.equal((await call('profile','GET',undefined,lb.data.token)).data.profile,null);
 assert.equal((await call('register','POST',{},undefined,{Origin:'https://evil.test'})).status,403);
 assert.equal((await call('logout','POST',{},token)).status,200);assert.equal((await call('profile','GET',undefined,token)).status,401);

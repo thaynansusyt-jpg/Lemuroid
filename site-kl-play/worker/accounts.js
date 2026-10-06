@@ -38,15 +38,21 @@ const accountInfo=row=>({id:row.id,username:row.username,revision:row.revision,u
 const validColor=(s)=>typeof s==='string'&&/^#[0-9a-fA-F]{6}$/.test(s);
 function validateProfile(p){
  if(!p||typeof p!=='object'||Array.isArray(p)||typeof p.name!=='string'||p.name.length>32||!p.sii||!p.days||typeof p.days!=='object'||Array.isArray(p.days))throw new AccountError('Perfil inválido.');
- if(!validColor(p.sii.ink)||!validColor(p.sii.shirt)||!['kl','tee','hoodie','sport','sii_plus'].includes(p.sii.clothes)||!['happy','cool','calm'].includes(p.sii.face))throw new AccountError('Sii inválido.');
+ if(!validColor(p.sii.ink)||!validColor(p.sii.shirt)||!['kl','tee','hoodie','sport','sii_plus','sonic','super_sonic'].includes(p.sii.clothes)||!['happy','cool','calm'].includes(p.sii.face))throw new AccountError('Sii inválido.');
+ const achievements=p.achievements||[],events=p.events||[];
+ const eventNames=['sonic_theme','wiiu_theme','sonic_skin','fullscreen','nds_layout','3ds_layout','profile_name','sii_edit'];
+ if(!Array.isArray(achievements)||achievements.length>128||achievements.some(x=>!Number.isInteger(x)||x<1||x>128)||new Set(achievements).size!==achievements.length||!Array.isArray(events)||events.length>8||events.some(x=>!eventNames.includes(x))||new Set(events).size!==events.length)throw new AccountError('Conquistas inválidas.');
+ const badge=p.sii.badge||0;
+ if(!Number.isInteger(badge)||badge<0||badge>128||(badge&&!achievements.includes(badge))||(p.sii.clothes==='sonic'&&!achievements.includes(1))||(p.sii.clothes==='super_sonic'&&!achievements.includes(100)))throw new AccountError('Recompensa inválida.');
  if(Object.keys(p.days).length>4000)throw new AccountError('O diário excede o limite desta versão.');
  for(const [date,d] of Object.entries(p.days)){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date||!d||!Number.isSafeInteger(d.millis||0)||(d.millis||0)<0||!Number.isSafeInteger(d.sessions||0)||(d.sessions||0)<0||typeof(d.note||'')!=='string'||(d.note||'').length>2000)throw new AccountError('Diário inválido.');
+  for(const key of ['sonicMillis','screenMillis','sonicSessions'])if(d[key]!==undefined&&(!Number.isSafeInteger(d[key])||d[key]<0||d[key]>(key==='sonicSessions'?d.sessions||0:d.millis||0)))throw new AccountError('Progresso inválido.');
   if(d.games&& (typeof d.games!=='object'||Array.isArray(d.games)||Object.keys(d.games).length>1000))throw new AccountError('Jogos inválidos.');
   for(const [id,g] of Object.entries(d.games||{}))if(id.length>200||!g||typeof g.title!=='string'||g.title.length>160||!Number.isSafeInteger(g.millis)||g.millis<0)throw new AccountError('Estatísticas inválidas.');
  }
  // Ignore identity/provider flags from the client; server owns account identity and Sii+ entitlement.
- return {name:p.name,sii:{ink:p.sii.ink,shirt:p.sii.shirt,clothes:p.sii.clothes,face:p.sii.face},days:p.days};
+ return {name:p.name,sii:{ink:p.sii.ink,shirt:p.sii.shirt,clothes:p.sii.clothes,face:p.sii.face,badge},days:p.days,achievements,events};
 }
 async function accountRoute(request,env){
  const path=new URL(request.url).pathname;

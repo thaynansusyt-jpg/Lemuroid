@@ -1,4 +1,4 @@
-const PLUS={"version":"0.5.0-plus.1","size":209509274,"sha256":"0b49706fa4147e9b18125500e5c5e0bb99221cb08446dd9511086ed7fba53b4f","filename":"KL-Play-0.5.0-plus.1.apk","url":"/downloads/KL-Play-0.5.0-plus.1.apk","host":"Hospedado no GitHub","asset":"https://github.com/thaynansusyt-jpg/Lemuroid/releases/download/v0.5.0-plus.1/KL-Play-0.5.0-plus.1.apk"};
+const PLUS={"version":"0.5.0s-plus.1","size":209539340,"sha256":"68f33f58bfbc77dca6635bc789f32e6faed014bd98d1a7eea37b34a0810389b9","filename":"KL-Play-0.5.0s-plus.1.apk","url":"/downloads/KL-Play-0.5.0s-plus.1.apk","host":"Hospedado no GitHub","asset":"https://github.com/thaynansusyt-jpg/Lemuroid/releases/download/v0.5.0s-plus.1/KL-Play-0.5.0s-plus.1.apk"};
 const KEY='downloads/KL-Play-0.5.0-rc.1.apk', SIZE=202534464, SHA='709511255f7dabbbfe26dbeac898a985780c94808af205190fadbecf18c0b825';
 const LEGACY={key:'downloads/KL-GBA-0.1.0-beta.1.apk',size:199005449,sha:'c964c3bc80ffb693ee614ff8d1135a47448ae0154d7a8aa0660bc5d35fa38fdd'};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
