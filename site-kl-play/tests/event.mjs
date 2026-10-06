@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+const script=(await readFile(new URL('../frontend/app.js',import.meta.url),'utf8')).split('// Shared ten-day celebration; never resets for a new visitor or installation.')[1];
+assert.ok(script);
+let now=1791245504000;
+let callback;
+const label={textContent:''};
+vm.runInNewContext(script,{document:{getElementById:()=>label},Date:{now:()=>now},setInterval:f=>{callback=f}});
+assert.match(label.textContent,/10d 00h 00m 00s/);
+now+=3600000;callback();assert.match(label.textContent,/9d 23h 00m 00s/);
+now=1792109503999;callback();assert.match(label.textContent,/0d 00h 00m 01s/);
+now=1792109504000;callback();assert.equal(label.textContent,'Evento encerrado. Sua coleção continua!');
+now+=86400000;callback();assert.equal(label.textContent,'Evento encerrado. Sua coleção continua!');
+console.log('Website event: shared deadline, elapsed hour, final second and expiry passed');

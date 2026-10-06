@@ -34,3 +34,16 @@ async function loadDownload(){
  }catch{state.textContent='Download temporariamente indisponível';button.textContent='Tente novamente em instantes';note.textContent='Recarregue a página para conferir o download.'}
 }
 loadDownload();
+
+// Shared ten-day celebration; never resets for a new visitor or installation.
+const segaClock = document.getElementById('sega-event-countdown');
+if (segaClock) {
+ const updateSegaClock = () => {
+  const seconds = Math.ceil(Math.max(0, Math.min(864000000, 1792109504000 - Date.now())) / 1000);
+  const pad = n => String(n).padStart(2, '0');
+  segaClock.textContent = seconds > 0
+   ? `Tempo restante: ${Math.floor(seconds / 86400)}d ${pad(Math.floor(seconds / 3600) % 24)}h ${pad(Math.floor(seconds / 60) % 60)}m ${pad(seconds % 60)}s • até 15/10, 21h11 (Brasília)`
+   : 'Evento encerrado. Sua coleção continua!';
+ };
+ updateSegaClock(); setInterval(updateSegaClock, 1000);
+}
