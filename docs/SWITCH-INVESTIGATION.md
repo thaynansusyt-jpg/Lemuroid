@@ -21,3 +21,11 @@ Before porting the engine, establish whether the unmodified official Eden can bo
 If the baseline is viable, build a pinned ARM64 engine separately, then implement an isolated JNI-backed Android module and process in KL: Surface lifecycle, game file access, user-supplied system files, input, audio, memory reporting and crash logs. Keep all existing LibretroDroid consoles intact. Every exposed setting must be forwarded to the real engine and hardware-specific driver options must be filtered. A launcher button or an installed external Eden APK is not embedded Switch emulation.
 
 No ROMs, console keys or firmware are included. Preserve Eden GPLv3-or-later, notices and dependency licenses when redistributing a derived engine. Original Android signing keys must remain private.
+
+## Alternative core check
+
+Suyu's current release workflow at https://github.com/suyu-emu/suyu-main/blob/mk8-recomp/.github/workflows/release.yml publishes libretro artifacts for Linux x86_64, Windows x86_64 and macOS ARM64. A standalone Android application build is different from a working Android libretro core. This inspected workflow does not supply an Android libretro artifact for KL.
+
+KL uses LibretroDroid 0.13.2 at 0ebd299624bfd51a0a1336dd0a2c56fe7ddbc0e3. Its environment.cpp advertises RETRO_HW_CONTEXT_OPENGLES3; hardware callbacks return an EGL framebuffer and eglGetProcAddress. Its video backend links GLESv3. It does not provide the frontend Vulkan render interface needed for direct reuse of a Switch Vulkan core. A future implementation must explicitly negotiate a supported context and isolate the new Vulkan surface/backend, instead of pretending an incompatible Vulkan library is a GLES core.
+
+The investigation covers interface and published build evidence, not proof that no experimental Android fork exists anywhere. No custom Mali driver or Switch-capable APK has been produced by this work. Phone testing remains outstanding.
