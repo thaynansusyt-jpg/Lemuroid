@@ -80,7 +80,7 @@ class GameLoader(
 
                 val coreLibrary =
                     runCatching {
-                        findLibrary(appContext, systemCoreConfig.coreID)!!.absolutePath
+                        findLibrary(appContext, systemCoreConfig.coreID, systemCoreConfig.coreLibraryFileNameOverride)!!.absolutePath
                     }.getOrElse { throw GameLoaderException(GameLoaderError.LoadCore) }
 
                 emit(LoadingState.LoadingGame)
@@ -158,6 +158,7 @@ class GameLoader(
     private fun findLibrary(
         context: Context,
         coreID: CoreID,
+        libraryOverride: String? = null,
     ): File? {
         val files =
             sequenceOf(
@@ -167,7 +168,7 @@ class GameLoader(
 
         return files
             .flatMap { it.walkBottomUp() }
-            .firstOrNull { it.name == coreID.libretroFileName }
+            .firstOrNull { it.name == (libraryOverride ?: coreID.libretroFileName) }
     }
 
     @Suppress("ArrayInDataClass")

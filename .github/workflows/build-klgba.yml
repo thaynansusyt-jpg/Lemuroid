@@ -48,6 +48,8 @@ jobs:
           python3 tools/kl-runtime/prepare.py kl-runtime-source
           g++ -std=c++17 -O1 -fsanitize=address,undefined -I tools/kl-runtime tools/kl-runtime/test-audio.cpp -o /tmp/kl-audio-test
           /tmp/kl-audio-test
+          g++ -std=c++17 -O1 -fsanitize=address,undefined -I tools/kl-runtime tools/kl-runtime/test-layout.cpp -o /tmp/kl-layout-test
+          /tmp/kl-layout-test
           sdkmanager "cmake;3.22.1" "ndk;27.2.12479018"
 
       - name: Check out pinned experimental GBA cable core
@@ -189,7 +191,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew :lemuroid-app:assembleFreeBundleRelease --stacktrace
+          ./gradlew :lemuroid-app:testFreeBundleReleaseUnitTest :lemuroid-app:assembleFreeBundleRelease --stacktrace
 
       - name: Verify and package
         id: package

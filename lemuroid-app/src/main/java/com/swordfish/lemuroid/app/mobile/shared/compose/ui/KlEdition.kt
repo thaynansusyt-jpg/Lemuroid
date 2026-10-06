@@ -71,6 +71,9 @@ fun KlScreenOptions(core: String? = null) {
             else when (core) { "citra" -> listOf("3DS" to KlPlaySettings.THREEDS_LAYOUT); "melonds", "desmume" -> listOf("NDS" to KlPlaySettings.NDS_LAYOUT); else -> emptyList() }
         systems.forEach { (name, key) ->
             var value by remember(key) { mutableStateOf(KlPlaySettings.preferences(context).getString(key, "DEFAULT") ?: "DEFAULT") }
+            var editing by remember(key) { mutableStateOf(false) }
+            if (editing) KlDualScreenEditor(name, { editing = false }, { value = "CUSTOM"; editing = false })
+            TextButton(onClick = { editing = true }) { Text("Editar posição e tamanho das duas telas") }
             Text("Telas de $name", style = MaterialTheme.typography.titleSmall)
             KlPlaySettings.layouts.forEach { (id, label) ->
                 FilterChip(selected = value == id, onClick = {

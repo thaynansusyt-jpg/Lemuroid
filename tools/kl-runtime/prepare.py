@@ -64,3 +64,59 @@ dependencies {
 }
 ''')
 print('Prepared pinned LibretroDroid 0.13.2 with bounded audio and synchronized speed changes')
+# Custom dual-screen presentation is GPU-side; no frame copies/readbacks.
+change(cpp/'video.h', '#include "videolayout.h"', '#include "videolayout.h"\n#include "kl_dual_layout.h"')
+change(cpp/'video.h', '    VideoLayout& getLayout() { return videoLayout; }', '    VideoLayout& getLayout() { return videoLayout; }\n    std::pair<float,float> getPointerPosition(float x,float y);')
+change(cpp/'video.h', '    void updateProgram();', '    void updateProgram();\n    void updateKlLayout();\n    KlDualLayout klLayout;')
+change(cpp/'videolayout.h', '    int getScreenWidth()', '    Rect getViewportRect() const { return viewportRect; }\n\n    int getScreenWidth()')
+change(cpp/'video.cpp', '#include "video.h"', '#include "video.h"\n#include "environment.h"\n#include <cstdlib>')
+change(cpp/'video.cpp', 'void Video::updateProgram() {', '''void Video::updateKlLayout() {
+    auto variable = [](const std::string& key, const char* fallback) {
+        retro_variable v {key.c_str(), nullptr};
+        Environment::callback_environment(RETRO_ENVIRONMENT_GET_VARIABLE, &v);
+        return std::string(v.value ? v.value : fallback);
+    };
+    auto kind = variable("kl_dual_kind", "off");
+    klLayout.enabled = kind == "nds" || kind == "3ds";
+    if (!klLayout.enabled || !videoLayout.getScreenWidth() || !videoLayout.getScreenHeight()) return;
+    auto viewport=videoLayout.getViewportRect();
+    float canvas = float(videoLayout.getScreenWidth())*viewport.getWidth() /
+                   (float(videoLayout.getScreenHeight())*viewport.getHeight());
+    std::string prefix = videoLayout.getScreenWidth() > videoLayout.getScreenHeight() ? "kl_dual_l_" : "kl_dual_p_";
+    for (int i=0;i<2;i++) {
+        std::string base=prefix+(i ? "bottom_" : "top_");
+        auto number = [&](const char* name, const char* fallback) {
+            auto value=variable(base+name,fallback); char* end=nullptr;
+            float n=std::strtof(value.c_str(),&end);
+            return std::isfinite(n) && end && !*end ? std::clamp(n,0.f,100.f)/100 : std::strtof(fallback,nullptr)/100;
+        };
+        auto rect=klScreenRect(number("x","50"), number("y",i?"100":"0"), number("w","90"),
+                               kind=="3ds" && !i ? 5.f/3 : 4.f/3,canvas);
+        rect.x=viewport.getX()+rect.x*viewport.getWidth(); rect.y=viewport.getY()+rect.y*viewport.getHeight();
+        rect.w*=viewport.getWidth(); rect.h*=viewport.getHeight();
+        klLayout.destination[i]=rect;
+    }
+    klLayout.source[0]={0,0,1,.5f};
+    klLayout.source[1]=kind=="3ds" ? KlRect{.1f,.5f,.8f,.5f} : KlRect{0,.5f,1,.5f};
+}
+std::pair<float,float> Video::getPointerPosition(float x,float y) {
+    updateKlLayout();
+    return klLayout.enabled ? klMapTouch(klLayout,(x+1)/2,(y+1)/2) : videoLayout.getRelativePosition(x,y);
+}
+void Video::updateProgram() {
+    auto effective = klLayout.enabled ? ShaderManager::Config { ShaderManager::Type::SHADER_DEFAULT } : requestedShaderConfig;''')
+change(cpp/'video.cpp', 'loadedShaderType.value() == requestedShaderConfig', 'loadedShaderType.value() == effective')
+change(cpp/'video.cpp', 'loadedShaderType = requestedShaderConfig;', 'loadedShaderType = effective;')
+change(cpp/'video.cpp', 'ShaderManager::getShader(requestedShaderConfig)', 'ShaderManager::getShader(effective)')
+change(cpp/'video.cpp', '    if (immersiveModeEnabled) {', '    updateKlLayout();\n    if (immersiveModeEnabled && !klLayout.enabled) {')
+change(cpp/'video.cpp', '        glDrawArrays(GL_TRIANGLES, 0, 6);', '''        if (isLastPass && klLayout.enabled) {
+            for (int screen=0;screen<2;screen++) {
+                auto v=klVertices(klLayout.destination[screen]);
+                auto uv=klCoordinates(klLayout.source[screen],Environment::getInstance().isBottomLeftOrigin());
+                glVertexAttribPointer(shader.gvPositionHandle,2,GL_FLOAT,GL_FALSE,0,v.data());
+                glVertexAttribPointer(shader.gvCoordinateHandle,2,GL_FLOAT,GL_FALSE,0,uv.data());
+                glDrawArrays(GL_TRIANGLES,0,6);
+            }
+        } else glDrawArrays(GL_TRIANGLES, 0, 6);''')
+change(cpp/'libretrodroid.cpp', 'video->getLayout().getRelativePosition(xAxis, yAxis)', 'video->getPointerPosition(xAxis, yAxis)')
+(cpp/'kl_dual_layout.h').write_text((Path(__file__).parent/'kl_dual_layout.h').read_text())

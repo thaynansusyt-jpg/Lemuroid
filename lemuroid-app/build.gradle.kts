@@ -22,8 +22,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     defaultConfig {
-        versionCode = 300
-        versionName = "1.0.0-rc.1" // Always remember to update Cores Tag!
+        versionCode = 301
+        versionName = "1.0.0-rc.2" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
         buildConfigField("String", "KL_GOOGLE_CLIENT_ID", authLiteral("google.webClientId"))
         buildConfigField("String", "KL_GITHUB_CLIENT_ID", authLiteral("github.clientId"))
@@ -139,6 +139,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.credentials:credentials:1.5.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")

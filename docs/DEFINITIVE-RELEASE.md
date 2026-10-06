@@ -2,6 +2,14 @@
 
 Este APK é uma candidata para testes, não a conclusão de todos os recursos planejados para a 1.0.0. Mantém o pacote e a assinatura das versões anteriores. Instale por cima; não precisa desinstalar nem apagar os dados.
 
+## Correções da rc.2
+
+- Corrigida a exceção ao iniciar Pokémon/Quetzal: o seletor procurava gpSP na lista de núcleos singleplayer do GBA, que só registra mGBA.
+- O carregador agora usa a biblioteca de cabo dedicada. Antes ele também procurava o arquivo antigo do gpSP, que não é incluído nesta versão.
+- Teste de regressão usa a lista real de sistemas do app e verifica os três modos GBA e os caminhos GB/GBC.
+- Editor das duas telas de DS/3DS: posição horizontal, vertical e largura independentes para superior/inferior, com prévia e ajustes separados por orientação. Em Configurações → Telas e controles → Editar posição e tamanho das duas telas. Salve e reabra o jogo.
+- A composição usa GPU, preserva proporções e remapeia o toque para a tela inferior. O layout personalizado usa filtro simples; os modelos anteriores continuam disponíveis. Precisa de validação física das telas e do toque.
+
 ## Disponível nesta candidata
 
 - Introdução com animação, cores do tema e adaptação para telas baixas/horizontais.

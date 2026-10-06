@@ -6,7 +6,6 @@ import android.widget.Toast
 import com.swordfish.lemuroid.app.shared.multiplayer.KlRoomService
 import com.swordfish.lemuroid.app.shared.multiplayer.KlWifiRoom
 import com.swordfish.lemuroid.app.shared.multiplayer.KlLinkSession
-import com.swordfish.lemuroid.lib.library.CoreID
 import com.swordfish.lemuroid.R
 import com.swordfish.lemuroid.app.shared.main.GameLaunchTaskHandler
 import com.swordfish.lemuroid.common.displayToast
@@ -16,6 +15,9 @@ import com.swordfish.lemuroid.lib.library.db.entity.Game
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class GameLauncher(
     private val coresSelection: CoresSelection,
@@ -60,14 +62,23 @@ class GameLauncher(
         } else null
 
         GlobalScope.launch {
-            val system = GameSystem.findById(game.systemId)
-            val coreConfig = if (link != null) {
-                val mode = link.mode
-                val selected = if (game.systemId != "gba") CoreID.GAMBATTE else if (mode in setOf("POKEMON", "WIRELESS")) CoreID.GPSP else CoreID.MGBA
-                system.systemCoreConfigs.first { it.coreID == selected }.copy(statesSupported = false)
-            } else coresSelection.getCoreConfigForSystem(system)
-            gameLaunchTaskHandler.handleGameStart(activity.applicationContext)
-            BaseGameActivity.launchGame(activity, coreConfig, game, loadSave && link == null, leanback, link)
+            try {
+                val system = GameSystem.findById(game.systemId)
+                val coreConfig = if (link != null) {
+                    com.swordfish.lemuroid.app.shared.multiplayer.KlLinkCoreConfig.resolve(system, link.mode)
+                } else coresSelection.getCoreConfigForSystem(system)
+                gameLaunchTaskHandler.handleGameStart(activity.applicationContext)
+                withContext(Dispatchers.Main) {
+                    BaseGameActivity.launchGame(activity, coreConfig, game, loadSave && link == null, leanback, link)
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                timber.log.Timber.e(error, "Could not launch game")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(activity, "Não foi possível abrir o jogo. Saia da sala e tente novamente.", Toast.LENGTH_LONG).show()
+                }
+            }
         }
 
         return true

@@ -14,7 +14,7 @@ object KlPlaySettings {
     const val NDS_LAYOUT = "kl_nds_layout"
     const val THREEDS_LAYOUT = "kl_3ds_layout"
     const val NDS_RATIO = "kl_nds_ratio"
-    val layouts = listOf("DEFAULT" to "Padrão do núcleo", "LARGE" to "Superior grande + inferior pequena",
+    val layouts = listOf("CUSTOM" to "Personalizado KL", "DEFAULT" to "Padrão do núcleo", "LARGE" to "Superior grande + inferior pequena",
         "SIDE" to "Lado a lado", "STACK" to "Uma sobre a outra", "TOP" to "Somente superior", "BOTTOM" to "Somente inferior")
     fun preferences(context: Context) = context.getSharedPreferences("kl_play_settings", Context.MODE_PRIVATE)
     fun speed(context: Context) = preferences(context).getInt(SPEED, 2).coerceIn(2, 8)
@@ -40,6 +40,17 @@ object KlPlaySettings {
             // No frame skipping while serial timing is active.
             overrides["gpsp_frameskip"] = "disabled"
         }
+        if (layout == "CUSTOM" && core in setOf("citra", "melonds", "desmume")) {
+            overrides["kl_dual_kind"] = if (core == "citra") "3ds" else "nds"
+            val prefix = if (core == "citra") "kl_dual_3ds_" else "kl_dual_nds_"
+            for (orientation in listOf("p", "l")) {
+                val fields = listOf("top_x", "top_y", "top_w", "bottom_x", "bottom_y", "bottom_w")
+                val defaults = listOf(50, 0, 90, 50, 100, 70)
+                fields.forEachIndexed { i, field ->
+                    overrides["kl_dual_${orientation}_$field"] = preferences(context).getInt("${prefix}${orientation}_$field", defaults[i]).coerceIn(if (field.endsWith("_w")) 10 else 0, 100).toString()
+                }
+            }
+        } else overrides["kl_dual_kind"] = "off"
         return original.filterNot { it.key in overrides } + overrides.map { CoreVariable(it.key, it.value) }
     }
 
