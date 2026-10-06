@@ -19,7 +19,7 @@ Este APK é uma candidata para testes, não a conclusão de todos os recursos pl
 ## Como testar Pokémon e Quetzal
 
 1. Nos dois celulares, em Multiplayer, ative cabo Wi-Fi e selecione o mesmo modo **antes de criar a sala**.
-2. Para Mario Kart Super Circuit, use **Multi-Pak**. Para Pokémon comercial de GBA, teste **Pokémon • cabo**. Para uma versão de Quetzal que use adaptador sem fio, teste **Adaptador sem fio**.
+2. Para Mario Kart Super Circuit, use **Multi-Pak**. Para Pokémon comercial de GBA, teste **Pokémon • cabo**. Para Quetzal, use também **Pokémon • cabo**, conforme esclarecimento do mantenedor do gpSP em https://github.com/libretro/gpsp/issues/245. O modo **Adaptador sem fio** é para jogos que usem o adaptador wireless do GBA.
 3. Crie a sala em um aparelho e conecte o segundo pelo IP. A sala de jogo deve ter exatamente duas pessoas.
 4. Abra o jogo nos dois aparelhos e use a opção multiplayer dentro do jogo. Primeiro use a mesma edição/versão da ROM; depois teste combinações compatíveis.
 5. GB/GBC escolhem automaticamente seu núcleo de cabo. Teste primeiro um jogo conhecido compatível e só depois hacks.
