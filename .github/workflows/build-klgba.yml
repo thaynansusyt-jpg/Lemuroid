@@ -133,7 +133,12 @@ jobs:
           toolchain="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin"
           make -C kl-gb-source -j2 HAVE_NETWORK=1 platform=unix \
             CC="$toolchain/aarch64-linux-android23-clang" \
-            CXX="$toolchain/aarch64-linux-android23-clang++"
+            CXX="$toolchain/aarch64-linux-android23-clang++" \
+            LDFLAGS="-static-libstdc++"
+          if "$toolchain/llvm-readelf" -d kl-gb-source/gambatte_libretro.so | grep -q 'libc++_shared.so'; then
+            echo 'The GB cable must include its own C++ runtime.'
+            exit 1
+          fi
           cp kl-gb-source/gambatte_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_gambatte_link.so
           printf '%s\n' 'Gambatte: libretro/gambatte-libretro@d9d6cd06382d1ced30de34d56d3609452323dab1 + tools/kl-gb/prepare.py' >> "$RUNNER_TEMP/kl-link-source.txt"
 
@@ -212,7 +217,9 @@ jobs:
           cat "$RUNNER_TEMP/kl-link-source.txt" >> public-apk/FONTE.txt
           printf '%s\n' 'LibretroDroid: Swordfish90/LibretroDroid@0ebd299624bfd51a0a1336dd0a2c56fe7ddbc0e3 + tools/kl-runtime/prepare.py' >> public-apk/FONTE.txt
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --print-certs "public-apk/KL-Play-$KL_VERSION.apk" > public-apk/ASSINATURA-PUBLICA.txt
-          unzip -l "public-apk/KL-Play-$KL_VERSION.apk" | grep 'lib/arm64-v8a/libkl_mgba_link.so'
+          for library in libkl_mgba_link.so libkl_gpsp_link.so libkl_gambatte_link.so; do
+            unzip -l "public-apk/KL-Play-$KL_VERSION.apk" | grep "lib/arm64-v8a/$library"
+          done
           cd public-apk
           sha256sum "KL-Play-$KL_VERSION.apk" > SHA256SUMS.txt
 
