@@ -8,9 +8,13 @@ Emulador para Android e fork independente do [Lemuroid](https://github.com/Sword
 
 ## Versão atual
 
-**0.5.0s Plus — SEGA Edition (0.5.0s-plus.1)**: UI Wii U ou Sonic Edition, skin azul Sonic, tela cheia, presets maiores para DS/3DS e 128 conquistas KL com recompensas para o Sii. A primeira conquista libera Sonic; a centésima, Super Sonic. Mantém conta KL e correções Plus. As Releases anteriores foram substituídas por esta edição.
+**0.5.0s Plus — SEGA Edition (0.5.0s-plus.2)**: UI Wii U ou Sonic Edition, skin azul Sonic, tela cheia, presets maiores para DS/3DS e 128 conquistas KL com recompensas para o Sii. A primeira conquista libera Sonic; a centésima, Super Sonic. Mantém conta KL e correções Plus. As Releases anteriores foram substituídas por esta edição.
 
 Esta é uma candidata para testes no aparelho. Compatibilidade e desempenho dependem do aparelho, do jogo e do núcleo; não há promessa de 8x ou 60 FPS universais.
+
+## Evento de dez dias
+
+De 05/10/2026 21:11:44 a 15/10/2026 21:11:44 (Brasília), com contador no Início, Conquistas e site. A coleção continua após o evento. Switch/Eden está em investigação e ainda não integra este APK; requisitos e interfaces examinados estão em docs/SWITCH-INVESTIGATION.md na branch dev.
 
 ## Instalação e atualização
 
