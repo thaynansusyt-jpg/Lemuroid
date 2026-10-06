@@ -28,8 +28,8 @@ Esta integração é experimental, somente Android ARM64. OpenGL ES, resolução
 
 1. Instale o APK experimental por cima do KL atual, sem desinstalar. Mantenha backup dos saves.
 2. Coloque seus arquivos Dreamcast em uma pasta chamada `dreamcast` dentro da biblioteca selecionada. Esse nome evita confundir CHD e M3U com PlayStation ou outros consoles.
-3. Formatos: CDI, CHD, GDI com todas as faixas na mesma pasta, ou M3U que referencia seus discos. Para GDI, os nomes de faixas devem corresponder exatamente ao descritor.
-4. Abra o jogo. Como o KL tem VFS versão 2 e Flycast usa versão 3, esta primeira versão usa arquivos reais em cache. No primeiro carregamento pelo seletor de pasta do Android, o jogo e as faixas serão copiados: pode demorar e exige espaço disponível equivalente ao jogo.
+3. Formatos: CDI, CHD, GDI com todas as faixas na mesma pasta, ou M3U que referencia discos CHD/CDI com nomes diferentes na mesma pasta. Para GDI, os nomes de faixas devem corresponder exatamente ao descritor.
+4. Abra o jogo. Como o KL tem VFS versão 2 e Flycast usa versão 3, esta primeira versão usa arquivos reais em cache. No primeiro carregamento pelo seletor de pasta do Android, o jogo e as faixas serão copiados para um cache separado por jogo: pode demorar e exige espaço disponível equivalente ao jogo.
 5. Se estiver lento, abra as opções do jogo e tente 320×240 antes de aumentar a resolução. Não há promessa de 60 FPS em todos os jogos.
 6. Salve dentro do jogo, feche e reabra para verificar o VMU. Se você escolheu a pasta pública de saves no KL, o cartão por jogo será exportado para ela.
 

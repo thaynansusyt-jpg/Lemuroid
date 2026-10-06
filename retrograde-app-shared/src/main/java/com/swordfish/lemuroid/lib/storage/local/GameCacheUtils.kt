@@ -30,7 +30,13 @@ object GameCacheUtils {
         game: Game,
         context: Context,
     ): File {
-        val gamesCachePath = buildPath(folderName, game.systemId)
+        // Dreamcast discs often reuse track01.bin/track02.raw. Never share those
+        // cached files between titles when the Android document provider copies them.
+        val gamesCachePath = if (game.systemId == "dreamcast") {
+            buildPath(folderName, game.systemId, game.id.toString())
+        } else {
+            buildPath(folderName, game.systemId)
+        }
         val gamesCacheDir = File(context.cacheDir, gamesCachePath)
         gamesCacheDir.mkdirs()
         return gamesCacheDir
