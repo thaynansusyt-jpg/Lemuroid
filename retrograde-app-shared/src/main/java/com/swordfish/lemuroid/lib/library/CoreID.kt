@@ -116,6 +116,7 @@ enum class CoreID(
         "DosBox Pure",
         "libdosbox_pure_libretro_android.so",
     ),
+    FLYCAST("flycast", "Flycast 2.7 (experimental)", "libflycast_libretro_android.so"),
     ;
 
     companion object {

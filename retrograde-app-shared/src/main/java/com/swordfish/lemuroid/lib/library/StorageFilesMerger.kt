@@ -17,12 +17,38 @@ object StorageFilesMerger {
                 .associateWith { listOf<BaseStorageFile>() }
                 .toMutableMap()
 
+        mergeGdiFiles(allFiles, storageProvider)
         mergeBinCueFiles(allFiles, storageProvider)
         removeInvalidBinCuePairs(allFiles, storageProvider)
         mergeM3UPlaylists(allFiles, storageProvider)
         removeInvalidM3UPlaylists(allFiles, storageProvider)
 
         return allFiles.map { GroupedStorageFiles(it.key, it.value) }
+    }
+
+    private fun mergeGdiFiles(
+        allFiles: MutableMap<BaseStorageFile, List<BaseStorageFile>>,
+        storageProvider: StorageProvider,
+    ) {
+        val tracksToRemove = mutableSetOf<BaseStorageFile>()
+        val invalidDescriptors = mutableSetOf<BaseStorageFile>()
+        allFiles.keys.filter { it.extension.equals("gdi", ignoreCase = true) }.forEach { gdi ->
+            val names = runCatching {
+                storageProvider.getInputStream(gdi.uri)?.use { GdiTracks.parse(it.readLines()) }
+            }.getOrNull()
+            val parent = (gdi.path ?: gdi.uri.path ?: "").substringBeforeLast('/')
+            val siblings = allFiles.keys.filter {
+                (it.path ?: it.uri.path ?: "").substringBeforeLast('/') == parent
+            }
+            val tracks = names?.mapNotNull { name -> siblings.firstOrNull { it.name == name } }
+            if (names == null || tracks == null || tracks.size != names.size) {
+                invalidDescriptors.add(gdi)
+            } else {
+                allFiles[gdi] = tracks.distinct()
+                tracksToRemove.addAll(tracks)
+            }
+        }
+        (tracksToRemove + invalidDescriptors).forEach { allFiles.remove(it) }
     }
 
     private fun removeInvalidM3UPlaylists(

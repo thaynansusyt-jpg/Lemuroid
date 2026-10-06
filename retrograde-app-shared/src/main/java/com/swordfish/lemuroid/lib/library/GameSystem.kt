@@ -1297,6 +1297,48 @@ data class GameSystem(
                     uniqueExtensions = listOf("3ds"),
                     hasTouchScreen = true,
                 ),
+                GameSystem(
+                    SystemID.DREAMCAST,
+                    "Sega - Dreamcast",
+                    R.string.game_system_title_dreamcast,
+                    R.string.game_system_abbr_dreamcast,
+                    listOf(
+                        SystemCoreConfig(
+                            CoreID.FLYCAST,
+                            controllerConfigs = hashMapOf(0 to arrayListOf(ControllerConfigs.DREAMCAST)),
+                            defaultSettings = listOf(
+                                CoreVariable("reicast_internal_resolution", "640x480"),
+                                CoreVariable("reicast_threaded_rendering", "disabled"),
+                                CoreVariable("reicast_hle_bios", "enabled"),
+                                CoreVariable("reicast_alpha_sorting", "per-strip (fast, least accurate)"),
+                                CoreVariable("reicast_per_content_vmus", "All VMUs"),
+                            ),
+                            exposedSettings = listOf(
+                                ExposedSetting("reicast_internal_resolution", R.string.setting_dreamcast_resolution,
+                                    arrayListOf(
+                                        ExposedSetting.Value("320x240", R.string.value_dreamcast_half),
+                                        ExposedSetting.Value("640x480", R.string.value_dreamcast_native),
+                                        ExposedSetting.Value("1280x960", R.string.value_dreamcast_double),
+                                    )),
+                                ExposedSetting("reicast_enable_dsp", R.string.setting_dreamcast_dsp),
+                            ),
+                            exposedAdvancedSettings = listOf(
+                                ExposedSetting("reicast_hle_bios", R.string.setting_dreamcast_hle),
+                                ExposedSetting("reicast_frame_skipping", R.string.setting_dreamcast_frameskip),
+                            ),
+                            // Flycast writes per-game VMU cards to GET_SAVE_DIRECTORY.
+                            // Keep this enabled so public saves export includes every card.
+                            supportsLibretroVFS = false,
+                            skipDuplicateFrames = false,
+                            rumbleSupported = true,
+                            supportedOnlyArchitectures = setOf("arm64-v8a"),
+                        ),
+                    ),
+                    uniqueExtensions = listOf("cdi", "gdi"),
+                    supportedExtensions = listOf("cdi", "gdi", "chd", "m3u"),
+                    scanOptions = ScanOptions(scanByFilename = false),
+                    hasMultiDiskSupport = true,
+                ),
             )
 
         private val byIdCache by lazy { mapOf(*SYSTEMS.map { it.id.dbname to it }.toTypedArray()) }

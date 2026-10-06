@@ -52,6 +52,8 @@ import com.swordfish.touchinput.radial.layouts.WSLandscapeLeft
 import com.swordfish.touchinput.radial.layouts.WSLandscapeRight
 import com.swordfish.touchinput.radial.layouts.WSPortraitLeft
 import com.swordfish.touchinput.radial.layouts.WSPortraitRight
+import com.swordfish.touchinput.radial.layouts.DreamcastLeft
+import com.swordfish.touchinput.radial.layouts.DreamcastRight
 import gg.padkit.PadKitScope
 
 enum class TouchControllerID {
@@ -80,6 +82,7 @@ enum class TouchControllerID {
     WS_LANDSCAPE,
     WS_PORTRAIT,
     NINTENDO_3DS,
+    DREAMCAST,
     ;
 
     class Config(
@@ -239,6 +242,11 @@ enum class TouchControllerID {
                         { modifier, settings -> WSPortraitLeft(modifier, settings) },
                         { modifier, settings -> WSPortraitRight(modifier, settings) },
                     )
+
+                DREAMCAST -> Config(
+                    { modifier, settings -> DreamcastLeft(modifier, settings) },
+                    { modifier, settings -> DreamcastRight(modifier, settings) },
+                )
 
                 NINTENDO_3DS ->
                     Config(

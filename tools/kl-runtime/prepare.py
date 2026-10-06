@@ -129,3 +129,11 @@ change(cpp/'libretrodroid.cpp', 'video->getLayout().getRelativePosition(xAxis, y
 
 change(cpp/'libretrodroid.cpp', '    Environment::getInstance().updateVariable(variable.key, variable.value);', '    Environment::getInstance().updateVariable(variable.key, variable.value);\n    if (video && variable.key == "kl_dual_orientation") video->setKlOrientation(variable.value == "p");\n    if (video && variable.key.rfind("kl_dual_", 0) == 0) video->invalidateKlLayout();')
 change(p/'libretrodroid/src/main/java/com/swordfish/libretrodroid/GLRetroView.kt', '            LibretroDroid.onSurfaceChanged(width, height)', '            LibretroDroid.updateVariable(Variable("kl_dual_orientation", if (resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) "l" else "p"))\n            LibretroDroid.onSurfaceChanged(width, height)')
+# Fail graphics negotiation before altering the runtime or invoking incompatible GPU callbacks.
+change(cpp/'environment.cpp', '#include "environment.h"', '#include "environment.h"\n#include "kl_hw_context.h"')
+change(cpp/'environment.cpp', 'bool Environment::environment_handle_set_hw_render(struct retro_hw_render_callback* hw_render_callback) {', '''bool Environment::environment_handle_set_hw_render(struct retro_hw_render_callback* hw_render_callback) {
+    if (!hw_render_callback || !klSupportsHardwareContext(hw_render_callback->context_type)) {
+        LOGD("Unsupported hardware context requested: KL provides OpenGL ES only");
+        return false;
+    }''')
+(cpp/'kl_hw_context.h').write_text((Path(__file__).parent/'kl_hw_context.h').read_text())

@@ -141,4 +141,13 @@
     <string name="value_handy_rot_90">90</string>
     <string name="value_handy_rot_270">270</string>
 
+    <string name="game_system_title_dreamcast">Sega Dreamcast (experimental)</string>
+    <string name="game_system_abbr_dreamcast">DC</string>
+    <string name="setting_dreamcast_resolution">Dreamcast: resolução interna</string>
+    <string name="value_dreamcast_half">320×240 — mais leve</string>
+    <string name="value_dreamcast_native">640×480 — original</string>
+    <string name="value_dreamcast_double">1280×960 — mais exigente</string>
+    <string name="setting_dreamcast_dsp">Dreamcast: efeitos de áudio DSP</string>
+    <string name="setting_dreamcast_hle">Dreamcast: BIOS emulada (reinicie o jogo)</string>
+    <string name="setting_dreamcast_frameskip">Dreamcast: pular quadros</string>
 </resources>
