@@ -159,7 +159,7 @@ jobs:
           set -euo pipefail
           git -C kl-dreamcast-source submodule update --init --recursive --depth 1 core/deps/asio core/deps/libchdr core/deps/tinygettext
           bash tools/kl-dreamcast/build-android.sh kl-dreamcast-source kl-dreamcast-android lemuroid-app/src/main/jniLibs/arm64-v8a/libflycast_libretro_android.so
-          printf '%s\n' 'Flycast: flyinghead/flycast@5aa091fde632fb332c8d8c34e280d62dc951954c (v2.7), OpenGL ES, ARM64' >> "$RUNNER_TEMP/kl-link-source.txt"
+          printf '%s\n' 'Flycast: flyinghead/flycast@5aa091fde632fb332c8d8c34e280d62dc951954c (v2.7) + tools/kl-dreamcast/prepare.py, OpenGL ES, ARM64' >> "$RUNNER_TEMP/kl-link-source.txt"
           cp kl-dreamcast-source/LICENSE "$RUNNER_TEMP/FLYCAST-LICENSE.txt"
           mkdir -p lemuroid-app/src/main/assets/licenses
           cp kl-dreamcast-source/LICENSE lemuroid-app/src/main/assets/licenses/Flycast-GPL.txt

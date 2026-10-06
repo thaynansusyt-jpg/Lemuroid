@@ -52,4 +52,4 @@ gcc -std=gnu11 -I flycast/core/deps/libretro-common/include tools/kl-dreamcast/t
 EGL_PLATFORM=surfaceless LIBGL_ALWAYS_SOFTWARE=1 /tmp/kl-dreamcast-test flycast-host/flycast_libretro.so /tmp/kl-dreamcast-test.elf
 ```
 
-A compilação Android usa `ANDROID_WEAK_API_DEFS=ON`, como o próprio projeto Flycast, para respeitar o fallback de APIs de rede em versões antigas do Android. Não foi necessário aumentar o Android mínimo do KL.
+A compilação Android usa `ANDROID_WEAK_API_DEFS=ON`, como o próprio projeto Flycast, e o ajuste `tools/kl-dreamcast/prepare.py` usa a implementação de interfaces de rede já incluída pelo Flycast em `core/network/ifaddrs.c`. O núcleo não depende das funções de interface de rede introduzidas no Android 7. Não foi necessário aumentar o Android mínimo do KL.

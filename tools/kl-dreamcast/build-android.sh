@@ -3,6 +3,7 @@ set -euo pipefail
 source_dir="$1"
 build_dir="$2"
 output_file="$3"
+python3 "$(dirname "$0")/prepare.py" "$source_dir"
 cmake -S "$source_dir" -B "$build_dir" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/27.2.12479018/build/cmake/android.toolchain.cmake" \
