@@ -67,7 +67,7 @@ print('Prepared pinned LibretroDroid 0.13.2 with bounded audio and synchronized 
 # Custom dual-screen presentation is GPU-side; no frame copies/readbacks.
 change(cpp/'video.h', '#include "videolayout.h"', '#include "videolayout.h"\n#include "kl_dual_layout.h"')
 change(cpp/'video.h', '    VideoLayout& getLayout() { return videoLayout; }', '    VideoLayout& getLayout() { return videoLayout; }\n    std::pair<float,float> getPointerPosition(float x,float y);')
-change(cpp/'video.h', '    void updateProgram();', '    void updateProgram();\n    void updateKlLayout();\n    KlDualLayout klLayout;')
+change(cpp/'video.h', '    void updateProgram();', '    void updateProgram();\n    void updateKlLayout();\n    KlDualLayout klLayout;\n    bool klSettingsLoaded=false;\n    std::string klKind;\n    std::array<float,12> klPositions;')
 change(cpp/'videolayout.h', '    int getScreenWidth()', '    Rect getViewportRect() const { return viewportRect; }\n\n    int getScreenWidth()')
 change(cpp/'video.cpp', '#include "video.h"', '#include "video.h"\n#include "environment.h"\n#include <cstdlib>')
 change(cpp/'video.cpp', 'void Video::updateProgram() {', '''void Video::updateKlLayout() {
@@ -76,21 +76,26 @@ change(cpp/'video.cpp', 'void Video::updateProgram() {', '''void Video::updateKl
         Environment::callback_environment(RETRO_ENVIRONMENT_GET_VARIABLE, &v);
         return std::string(v.value ? v.value : fallback);
     };
-    auto kind = variable("kl_dual_kind", "off");
+    if (!klSettingsLoaded) {
+        klSettingsLoaded=true;
+        klKind=variable("kl_dual_kind","off");
+        const char* fields[]={"top_x","top_y","top_w","bottom_x","bottom_y","bottom_w"};
+        const char* defaults[]={"50","0","90","50","100","70"};
+        for(int orientation=0;orientation<2;orientation++) for(int i=0;i<6;i++) {
+            auto value=variable(std::string(orientation ? "kl_dual_l_" : "kl_dual_p_")+fields[i],defaults[i]);
+            char* end=nullptr; float n=std::strtof(value.c_str(),&end);
+            klPositions[orientation*6+i]=std::isfinite(n) && end && !*end ? std::clamp(n,0.f,100.f)/100 : std::strtof(defaults[i],nullptr)/100;
+        }
+    }
+    const auto& kind=klKind;
     klLayout.enabled = kind == "nds" || kind == "3ds";
     if (!klLayout.enabled || !videoLayout.getScreenWidth() || !videoLayout.getScreenHeight()) return;
     auto viewport=videoLayout.getViewportRect();
     float canvas = float(videoLayout.getScreenWidth())*viewport.getWidth() /
                    (float(videoLayout.getScreenHeight())*viewport.getHeight());
-    std::string prefix = videoLayout.getScreenWidth() > videoLayout.getScreenHeight() ? "kl_dual_l_" : "kl_dual_p_";
+    int offset=videoLayout.getScreenWidth() > videoLayout.getScreenHeight() ? 6 : 0;
     for (int i=0;i<2;i++) {
-        std::string base=prefix+(i ? "bottom_" : "top_");
-        auto number = [&](const char* name, const char* fallback) {
-            auto value=variable(base+name,fallback); char* end=nullptr;
-            float n=std::strtof(value.c_str(),&end);
-            return std::isfinite(n) && end && !*end ? std::clamp(n,0.f,100.f)/100 : std::strtof(fallback,nullptr)/100;
-        };
-        auto rect=klScreenRect(number("x","50"), number("y",i?"100":"0"), number("w","90"),
+        auto rect=klScreenRect(klPositions[offset+i*3], klPositions[offset+i*3+1], klPositions[offset+i*3+2],
                                kind=="3ds" && !i ? 5.f/3 : 4.f/3,canvas);
         rect.x=viewport.getX()+rect.x*viewport.getWidth(); rect.y=viewport.getY()+rect.y*viewport.getHeight();
         rect.w*=viewport.getWidth(); rect.h*=viewport.getHeight();

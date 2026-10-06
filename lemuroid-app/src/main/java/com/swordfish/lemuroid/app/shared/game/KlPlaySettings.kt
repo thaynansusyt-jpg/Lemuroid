@@ -42,6 +42,10 @@ object KlPlaySettings {
         }
         if (layout == "CUSTOM" && core in setOf("citra", "melonds", "desmume")) {
             overrides["kl_dual_kind"] = if (core == "citra") "3ds" else "nds"
+            if (core == "desmume") {
+                overrides["desmume_screens_gap"] = "0"
+                overrides["desmume_input_rotation"] = "0"
+            }
             val prefix = if (core == "citra") "kl_dual_3ds_" else "kl_dual_nds_"
             for (orientation in listOf("p", "l")) {
                 val fields = listOf("top_x", "top_y", "top_w", "bottom_x", "bottom_y", "bottom_w")
