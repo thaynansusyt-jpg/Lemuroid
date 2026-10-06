@@ -36,3 +36,20 @@ Esta integração é experimental, somente Android ARM64. OpenGL ES, resolução
 Flycast inclui BIOS HLE. Alguns jogos precisam da BIOS original obtida pelo usuário; a pasta usada pelo núcleo é `system/dc` dentro do diretório de sistema do KL. Não redistribuir BIOS. A configuração de BIOS emulada requer reiniciar o jogo.
 
 Esta versão não acrescenta multiplayer de Dreamcast, Naomi ou Atomiswave. O cabo GBA/GB/GBC e o editor de telas DS/3DS permanecem na base rc.3.
+
+## Validação de execução do núcleo
+
+O núcleo fixado foi compilado no Linux com OpenGL ES. Em um contexto EGL/GLES real, usando Mesa e um programa SH-4 próprio que escreve no framebuffer, passou em: 30 quadros de hardware, 11056 quadros de áudio e serialização/restauração de estado de 27519683 bytes. Não é um benchmark de jogo comercial nem um teste de GPU Mali ou do APK em aparelho Android.
+
+Para repetir em Linux com cabeçalhos GLES3, EGL, CMake e Ninja instalados, usando a fonte fixada de Flycast:
+
+```sh
+git -C flycast submodule update --init --recursive core/deps/asio core/deps/libchdr core/deps/tinygettext core/deps/xbyak
+cmake -S flycast -B flycast-host -G Ninja -DCMAKE_BUILD_TYPE=Release -DLIBRETRO=ON -DUSE_VULKAN=OFF -DUSE_OPENGL=ON -DUSE_GLES=ON -DUSE_OPENMP=OFF -DUSE_LUA=OFF -DUSE_HOST_LIBZIP=OFF
+cmake --build flycast-host --parallel 2 --target flycast_libretro
+python3 tools/kl-dreamcast/create-test-rom.py /tmp/kl-dreamcast-test.elf
+gcc -std=gnu11 -I flycast/core/deps/libretro-common/include tools/kl-dreamcast/test-gles.c -ldl -l:libEGL.so.1 -o /tmp/kl-dreamcast-test
+EGL_PLATFORM=surfaceless LIBGL_ALWAYS_SOFTWARE=1 /tmp/kl-dreamcast-test flycast-host/flycast_libretro.so /tmp/kl-dreamcast-test.elf
+```
+
+A compilação Android usa `ANDROID_WEAK_API_DEFS=ON`, como o próprio projeto Flycast, para respeitar o fallback de APIs de rede em versões antigas do Android. Não foi necessário aumentar o Android mínimo do KL.

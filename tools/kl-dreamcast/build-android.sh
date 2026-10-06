@@ -6,7 +6,7 @@ output_file="$3"
 cmake -S "$source_dir" -B "$build_dir" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/27.2.12479018/build/cmake/android.toolchain.cmake" \
-  -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-23 -DANDROID_STL=c++_static \
+  -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-23 -DANDROID_STL=c++_static -DANDROID_WEAK_API_DEFS=ON \
   -DLIBRETRO=ON -DUSE_VULKAN=OFF -DUSE_OPENGL=ON -DUSE_GLES=ON \
   -DUSE_OPENMP=OFF -DUSE_LUA=OFF -DUSE_HOST_LIBZIP=OFF
 cmake --build "$build_dir" --parallel 2 --target flycast_libretro
