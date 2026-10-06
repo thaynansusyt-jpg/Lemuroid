@@ -30,8 +30,8 @@ fun KlDualScreenEditor(system: String, onClose: () -> Unit, onSaved: () -> Unit,
     val prefix = if (system == "3DS") "kl_dual_3ds_" else "kl_dual_nds_"
     val fields = listOf("top_x", "top_y", "top_w", "bottom_x", "bottom_y", "bottom_w")
     val defaults = listOf(50f, 0f, 90f, 50f, 100f, 70f)
-    val p = remember { mutableStateListOf(*fields.mapIndexed { i,k -> prefs.getInt(prefix+"p_"+k,defaults[i].toInt()).toFloat() }.toTypedArray()) }
-    val l = remember { mutableStateListOf(*fields.mapIndexed { i,k -> prefs.getInt(prefix+"l_"+k,defaults[i].toInt()).toFloat() }.toTypedArray()) }
+    val p = remember { mutableStateListOf(*fields.mapIndexed { i,k -> prefs.getFloat(prefix+"p_"+k+"_f",prefs.getInt(prefix+"p_"+k,defaults[i].toInt()).toFloat()) }.toTypedArray()) }
+    val l = remember { mutableStateListOf(*fields.mapIndexed { i,k -> prefs.getFloat(prefix+"l_"+k+"_f",prefs.getInt(prefix+"l_"+k,defaults[i].toInt()).toFloat()) }.toTypedArray()) }
     val portrait = LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE
     val values = if (portrait) p else l
     var selected by remember { mutableStateOf(0) }
@@ -43,7 +43,7 @@ fun KlDualScreenEditor(system: String, onClose: () -> Unit, onSaved: () -> Unit,
     LaunchedEffect(p.toList(), l.toList(), portrait) {
         val options = mutableMapOf("kl_dual_kind" to if(system=="3DS")"3ds" else "nds",
             "kl_dual_orientation" to if(portrait)"p" else "l")
-        fields.forEachIndexed { i,k -> options["kl_dual_p_$k"] = p[i].roundToInt().toString(); options["kl_dual_l_$k"] = l[i].roundToInt().toString() }
+        fields.forEachIndexed { i,k -> options["kl_dual_p_$k"] = p[i].toString(); options["kl_dual_l_$k"] = l[i].toString() }
         preview(options)
     }
     BackHandler(onBack=onClose)
@@ -110,7 +110,7 @@ fun KlDualScreenEditor(system: String, onClose: () -> Unit, onSaved: () -> Unit,
                 TextButton(onClick=onClose) {Text("Cancelar")}
                 Button(onClick={
                     val edit=prefs.edit()
-                    fields.forEachIndexed { i,k ->edit.putInt(prefix+"p_"+k,p[i].roundToInt()); edit.putInt(prefix+"l_"+k,l[i].roundToInt()) }
+                    fields.forEachIndexed { i,k ->edit.putInt(prefix+"p_"+k,p[i].roundToInt()); edit.putInt(prefix+"l_"+k,l[i].roundToInt()); edit.putFloat(prefix+"p_"+k+"_f",p[i]); edit.putFloat(prefix+"l_"+k+"_f",l[i]) }
                     if(live) edit.putBoolean(KlPlaySettings.FULL_SCREEN,true)
                     edit.putString(if(system=="3DS")KlPlaySettings.THREEDS_LAYOUT else KlPlaySettings.NDS_LAYOUT,"CUSTOM").commit()
                     onSaved()

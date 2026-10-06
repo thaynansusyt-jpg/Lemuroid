@@ -20,7 +20,7 @@ object KlPublicSaves {
             channel.lock().use { action() }
         }
     private fun config(context: Context) = AtomicFile(File(context.filesDir,CONFIG))
-    fun selected(context: Context): String? = runCatching { config(context).openRead().use { it.bufferedReader().readText() }.takeIf { it.isNotBlank() } }.getOrNull()
+    fun selected(context: Context): String? = runCatching { File(context.filesDir,CONFIG).readText().takeIf { it.isNotBlank() } }.getOrNull()
     fun status(context: Context): String = runCatching { File(context.filesDir,"kl-public-saves.status").readText() }.getOrDefault("")
     private fun root(context: Context) = selected(context)?.let { DocumentFile.fromTreeUri(context,Uri.parse(it)) }
     private fun note(context: Context, text: String) { runCatching { File(context.filesDir,"kl-public-saves.status").writeText(text) } }

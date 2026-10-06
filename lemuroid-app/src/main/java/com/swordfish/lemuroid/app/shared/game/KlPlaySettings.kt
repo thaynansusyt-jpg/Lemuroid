@@ -51,7 +51,7 @@ object KlPlaySettings {
                 val fields = listOf("top_x", "top_y", "top_w", "bottom_x", "bottom_y", "bottom_w")
                 val defaults = listOf(50, 0, 90, 50, 100, 70)
                 fields.forEachIndexed { i, field ->
-                    overrides["kl_dual_${orientation}_$field"] = preferences(context).getInt("${prefix}${orientation}_$field", defaults[i]).coerceIn(if (field.endsWith("_w")) 10 else 0, 100).toString()
+                    overrides["kl_dual_${orientation}_$field"] = preferences(context).getFloat("${prefix}${orientation}_${field}_f", preferences(context).getInt("${prefix}${orientation}_$field", defaults[i]).toFloat()).coerceIn(if (field.endsWith("_w")) 10f else 0f, 100f).toString()
                 }
             }
         } else overrides["kl_dual_kind"] = "off"
