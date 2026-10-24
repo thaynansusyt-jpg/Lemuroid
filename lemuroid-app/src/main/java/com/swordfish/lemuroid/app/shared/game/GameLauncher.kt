@@ -71,6 +71,9 @@ class GameLauncher(
                     check(com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.available(activity)) {
                         "O núcleo DS online está ausente desta compilação."
                     }
+                    withContext(Dispatchers.IO) {
+                        com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.preservePreviousStates(activity.applicationContext, game)
+                    }
                     com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.config(system)
                 } else coresSelection.getCoreConfigForSystem(system)
                 gameLaunchTaskHandler.handleGameStart(activity.applicationContext)

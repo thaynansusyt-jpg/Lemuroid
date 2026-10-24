@@ -30,3 +30,9 @@ Candidata em desenvolvimento; não certificada em aparelho real.
 - Ganhos de desempenho e WFC precisam de validação no Galaxy A15 e em outro aparelho.
 
 Fontes: https://docs.libretro.com/library/melonds_ds/ ; https://kaeru.world/projects/wfc ; https://github.com/JesseTG/melonds-ds
+
+## Validação desta implementação
+- Oito testes JVM de formato de save/perfis DS passaram.
+- Os arquivos Kotlin alterados passaram na análise de sintaxe.
+- A compilação Android completa e o teste em aparelho continuam pendentes; nenhum APK é certificado por estes testes isolados.
+- Os commits foram preparados no PR #1. Nenhuma execução Actions foi iniciada para eles durante esta sessão.
