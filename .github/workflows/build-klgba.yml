@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [dev]
   push:
-    branches: [dev]
+    branches: [dev, feat/kl-refresh-ds]
 
 permissions:
   contents: write
@@ -72,7 +72,7 @@ jobs:
             -DMELONDS_REPOSITORY_TAG=16f127dbb587a73371827ce79689c5d237c4b59b
           cmake --build kl-ds-build --parallel 2
           mkdir -p lemuroid-app/src/main/jniLibs/arm64-v8a
-          core=$(find kl-ds-build -name 'melondsds_libretro.so' -print -quit)
+          core=$(find kl-ds-build -name 'melondsds_libretro_android.so' -print -quit)
           test -n "$core"
           cp "$core" lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_melondsds.so
           printf '%s\n' 'melonDS DS: JesseTG/melonds-ds@f394adbacb5722ee97c1b37c8064da9a25818310; melonDS@16f127dbb587a73371827ce79689c5d237c4b59b; GPL-3.0' > "$RUNNER_TEMP/kl-link-source.txt"
