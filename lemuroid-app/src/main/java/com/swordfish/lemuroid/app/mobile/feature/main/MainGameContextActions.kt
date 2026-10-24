@@ -169,6 +169,9 @@ private fun ContextActionContent(
     ) {
         ContextActionHeader(game = selectedGame)
         Divider()
+        if (selectedGame.systemId in com.swordfish.lemuroid.app.shared.saves.KlSaveImporter.systems) {
+            com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlImportSaveAction(selectedGame)
+        }
         ContextActionEntry(
             label = if (savingCover) "Salvando capinha…" else "Escolher capa do celular",
             icon = Icons.Default.Image,

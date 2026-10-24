@@ -251,7 +251,7 @@ class GameViewModelRetroGameView(
 
             systemDirectory = gameData.systemDirectory.absolutePath
             savesDirectory = gameData.savesDirectory.absolutePath
-            variables = KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, gameData.coreVariables.toList()).map { Variable(it.key, it.value) }.toTypedArray()
+            variables = KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, gameData.coreVariables.toList(), systemCoreConfig.coreLibraryFileNameOverride == com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.LIBRARY).map { Variable(it.key, it.value) }.toTypedArray()
             saveRAMState = gameData.saveRAMData
             shader =
                 ShaderChooser.getShaderForSystem(
@@ -391,7 +391,7 @@ class GameViewModelRetroGameView(
     private fun updateCoreVariables(options: List<CoreVariable>) {
         if (KlLinkSession.active) return
         val updatedVariables =
-            KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, options).map { Variable(it.key, it.value) }
+            KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, options, systemCoreConfig.coreLibraryFileNameOverride == com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.LIBRARY).map { Variable(it.key, it.value) }
                 .toTypedArray()
 
         updatedVariables.forEach {

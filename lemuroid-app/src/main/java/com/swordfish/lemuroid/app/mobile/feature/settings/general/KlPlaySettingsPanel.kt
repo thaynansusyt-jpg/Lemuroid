@@ -49,6 +49,7 @@ fun KlPlaySettingsPanel() {
             KlPlayToggle(KlPlaySettings.NATIVE_RESOLUTION, "Resolução nativa", "Usa resolução 1x em 3DS e PSP, reduzindo a carga gráfica.")
             KlPlayToggle(KlPlaySettings.SHADER_CACHE, "Cache de shaders 3DS", "Reutiliza shaders. O primeiro carregamento ainda pode ter pausas.")
         }
+        KlSettingsSection("Nintendo DS", "Perfis de desempenho para melonDS", true) { KlDsSettings() }
         KlSettingsSection("CPU emulada do 3DS", "Ajuste avançado de clock") {
             KlCpuClockControl()
         }
@@ -65,7 +66,9 @@ private fun KlSettingsSection(title: String, subtitle: String, initiallyOpen: Bo
                 Text(subtitle, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
                 TextButton(onClick = { clickSound(); expanded = !expanded }) { Text(if (expanded) "Fechar" else "Abrir") }
             }
-            if (expanded) { HorizontalDivider(); content() }
+            androidx.compose.animation.AnimatedVisibility(expanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { HorizontalDivider(); content() }
+            }
         }
     }
 }

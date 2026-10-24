@@ -45,8 +45,8 @@ fun AppTheme(darkTheme: Boolean? = null, content: @Composable () -> Unit) {
     val colors = if (sonic && (darkTheme ?: savedDark)) darkColorScheme(primary = Color(0xFF69A4FF), onPrimary = Color(0xFF001E58), secondary = Color(0xFFFFD342), primaryContainer = Color(0xFF063D9C), onPrimaryContainer = Color.White, secondaryContainer = Color(0xFF5A4200), onSecondaryContainer = Color(0xFFFFE58B), background = Color(0xFF070F26), surface = Color(0xFF111F3D), surfaceVariant = Color(0xFF203455))
     else if (sonic) lightColorScheme(primary = Color(0xFF0758D8), onPrimary = Color.White, secondary = Color(0xFF846400), primaryContainer = Color(0xFFD9E7FF), onPrimaryContainer = Color(0xFF002B73), secondaryContainer = Color(0xFFFFE58B), onSecondaryContainer = Color(0xFF443000), background = Color(0xFFF0F5FF), surface = Color.White, surfaceVariant = Color(0xFFE1EAFA))
     else if (darkTheme ?: savedDark) darkColorScheme(
-        primary = Color(0xFF74D3FF), onPrimary = Color(0xFF00364F),
-        primaryContainer = Color(0xFF124563), onPrimaryContainer = Color(0xFFD6F2FF),
+        primary = Color(0xFFFFBE85), onPrimary = Color(0xFF422B18),
+        primaryContainer = Color(0xFF63432B), onPrimaryContainer = Color(0xFFFFE2C7),
         secondary = Color(0xFFAFD1E2), secondaryContainer = Color(0xFF263F50),
         onSecondaryContainer = Color(0xFFDCEFFF),
         background = Color(0xFF0D1720), onBackground = Color(0xFFE3EFF5),
@@ -54,13 +54,13 @@ fun AppTheme(darkTheme: Boolean? = null, content: @Composable () -> Unit) {
         surfaceVariant = Color(0xFF253543), onSurfaceVariant = Color(0xFFB7CDD9),
         outline = Color(0xFF7D99AA), outlineVariant = Color(0xFF3B5160),
     ) else lightColorScheme(
-        primary = Color(0xFF007AAE), onPrimary = Color.White,
-        primaryContainer = Color(0xFFD6F2FF), onPrimaryContainer = Color(0xFF163A50),
-        secondary = Color(0xFF477B94), secondaryContainer = Color(0xFFE0F5FF),
+        primary = Color(0xFF925122), onPrimary = Color.White,
+        primaryContainer = Color(0xFFFFE2C7), onPrimaryContainer = Color(0xFF163A50),
+        secondary = Color(0xFF477B94), secondaryContainer = Color(0xFFE2EEE8),
         onSecondaryContainer = Color(0xFF163A50),
-        background = Color(0xFFF0F7FA), onBackground = Color(0xFF163A50),
-        surface = Color(0xFFFCFEFF), onSurface = Color(0xFF163A50),
-        surfaceVariant = Color(0xFFE5EFF4), onSurfaceVariant = Color(0xFF476579),
+        background = Color(0xFFF8F5F0), onBackground = Color(0xFF163A50),
+        surface = Color(0xFFFFFDFC), onSurface = Color(0xFF163A50),
+        surfaceVariant = Color(0xFFEDE7DF), onSurfaceVariant = Color(0xFF476579),
         outline = Color(0xFF7496A8), outlineVariant = Color(0xFFC9DEE8),
     )
     val typography = if (sonic) Typography(headlineLarge = Typography().headlineLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), titleLarge = Typography().titleLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) else Typography()

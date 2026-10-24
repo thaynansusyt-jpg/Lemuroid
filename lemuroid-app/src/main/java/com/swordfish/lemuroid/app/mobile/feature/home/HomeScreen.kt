@@ -114,25 +114,22 @@ private fun HomeScreen(
                 .padding(top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlHomeHero(
+            recent = state.recentGames.firstOrNull(),
+            onResume = onGameClicked,
+            onOpenFolder = onSetDirectoryClicked,
+            scanning = state.indexInProgress,
+        )
+        var selectedSystem by rememberSaveable { mutableStateOf<String?>(null) }
+        val systems = (state.recentGames + state.favoritesGames + state.discoveryGames).map { it.systemId }.distinct().sorted()
+        if (systems.size > 1) LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                val sonicEdition = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlSonic()
-                Text(if (sonicEdition) "◎ KL PLAY · SONIC EDITION" else "KL • PLAY", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineLarge)
-                com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlSegaEventBanner()
-                KlPointerToggle()
-                Text(if (sonicEdition) "SEGA Edition • suas aventuras, seus anéis." else "Seu espaço para jogar.", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "Abra um jogo para começar. Segure uma capa para personalizar. Crie sua skin no menu dos controles.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            item { androidx.compose.material3.FilterChip(selected = selectedSystem == null, onClick = { selectedSystem = null }, label = { Text("Todos") }) }
+            items(systems.size) { i ->
+                val id = systems[i]
+                androidx.compose.material3.FilterChip(selected = selectedSystem == id, onClick = { selectedSystem = id }, label = { Text(id.uppercase()) })
             }
         }
         AnimatedVisibility(state.showNoNotificationPermissionCard) {
@@ -170,19 +167,19 @@ private fun HomeScreen(
         }
         HomeRow(
             stringResource(id = R.string.recent),
-            state.recentGames,
+            state.recentGames.filter { selectedSystem == null || it.systemId == selectedSystem },
             onGameClicked,
             onGameLongClick,
         )
         HomeRow(
             stringResource(id = R.string.favorites),
-            state.favoritesGames,
+            state.favoritesGames.filter { selectedSystem == null || it.systemId == selectedSystem },
             onGameClicked,
             onGameLongClick,
         )
         HomeRow(
             stringResource(id = R.string.discover),
-            state.discoveryGames,
+            state.discoveryGames.filter { selectedSystem == null || it.systemId == selectedSystem },
             onGameClicked,
             onGameLongClick,
         )
@@ -197,24 +194,15 @@ private fun HomeRow(
     onGameLongClick: (Game) -> Unit,
 ) {
     if (games.isEmpty()) return
-    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        val columns = if (maxWidth >= 600.dp) 4 else 2
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            games.chunked(columns).forEach { group ->
-                androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    group.forEach { game ->
-                        LemuroidGameCard(
-                            modifier = Modifier.weight(1f),
-                            game = game,
-                            onClick = { onGameClicked(game) },
-                            onLongClick = { onGameLongClick(game) },
-                        )
-                    }
-                    repeat(columns - group.size) {
-                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
-                    }
-                }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(title, Modifier.padding(horizontal = 20.dp), style = MaterialTheme.typography.titleLarge)
+        LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(games.size, key = { games[it].id }) { i ->
+                val game = games[i]
+                LemuroidGameCard(
+                    modifier = Modifier.widthIn(min = 150.dp, max = 170.dp),
+                    game = game, onClick = { onGameClicked(game) }, onLongClick = { onGameLongClick(game) },
+                )
             }
         }
     }

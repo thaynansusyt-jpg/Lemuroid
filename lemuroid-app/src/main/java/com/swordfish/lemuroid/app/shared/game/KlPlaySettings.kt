@@ -4,6 +4,7 @@ import android.content.Context
 import com.swordfish.lemuroid.lib.core.CoreVariable
 
 object KlPlaySettings {
+    const val NDS_PERFORMANCE = "kl_nds_performance"
     const val CPU_3DS = "kl_3ds_cpu_scale"
     const val CLICK_SOUND = "kl_click_sound"
     const val SPEED = "fast_forward_speed"
@@ -20,11 +21,19 @@ object KlPlaySettings {
     fun speed(context: Context) = preferences(context).getInt(SPEED, 2).coerceIn(2, 8)
     fun enabled(context: Context, key: String) = preferences(context).getBoolean(key, false)
 
-    fun coreOptions(context: Context, core: String, original: List<CoreVariable>): List<CoreVariable> {
+    fun coreOptions(context: Context, core: String, original: List<CoreVariable>, dsOnline: Boolean = false): List<CoreVariable> {
         val overrides = mutableMapOf<String, String>()
         val key = if (core == "citra") THREEDS_LAYOUT else NDS_LAYOUT
         val layout = preferences(context).getString(key, "DEFAULT") ?: "DEFAULT"
         overrides.putAll(screenOptions(core, layout, preferences(context).getInt(NDS_RATIO, 2)))
+        if (core == "melonds") {
+            overrides.putAll(KlDsOptions.performance(preferences(context).getString(NDS_PERFORMANCE, "CORE") ?: "CORE"))
+            if (dsOnline) {
+                overrides["melonds_touch_mode"] = "touch"
+                overrides["melonds_firmware_wfc_dns"] = "178.62.43.212"
+                overrides["melonds_render_mode"] = "software"
+            }
+        }
         if (core == "citra") {
             val cpu = preferences(context).getInt(CPU_3DS, 0)
             if (cpu in listOf(50, 75, 100, 125, 150, 200)) overrides["citra_cpu_scale"] = if (cpu == 100) "100% (Default)" else "${cpu}%"

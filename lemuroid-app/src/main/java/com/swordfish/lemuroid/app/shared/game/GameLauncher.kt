@@ -30,6 +30,7 @@ class GameLauncher(
         loadSave: Boolean,
         leanback: Boolean,
     ): Boolean {
+        // Retired GBA preferences must never reactivate a cable core.
         if (GameProcessLock.isHeldByAnotherProcess(activity.applicationContext)) {
             activity.displayToast(R.string.game_process_another_game_running)
             return false
@@ -38,7 +39,7 @@ class GameLauncher(
         val room = KlRoomService.room.state.value
         val cable = activity.getSharedPreferences("kl_room_ui", 0).getBoolean("cable", false)
         val inRoom = room.phase in setOf(KlWifiRoom.Phase.HOSTING, KlWifiRoom.Phase.JOINED)
-        val link = if (cable && inRoom && game.systemId in setOf("gba", "gb", "gbc")) {
+        val link = if (cable && inRoom && game.systemId in setOf("gb", "gbc")) {
             if (room.members.size != 2) {
                 Toast.makeText(activity, "O cabo Wi-Fi precisa de exatamente 2 pessoas na sala.", Toast.LENGTH_LONG).show()
                 return false
@@ -66,6 +67,11 @@ class GameLauncher(
                 val system = GameSystem.findById(game.systemId)
                 val coreConfig = if (link != null) {
                     com.swordfish.lemuroid.app.shared.multiplayer.KlLinkCoreConfig.resolve(system, link.mode)
+                } else if (game.systemId == "nds" && com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.enabled(activity)) {
+                    check(com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.available(activity)) {
+                        "O núcleo DS online está ausente desta compilação."
+                    }
+                    com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.config(system)
                 } else coresSelection.getCoreConfigForSystem(system)
                 gameLaunchTaskHandler.handleGameStart(activity.applicationContext)
                 withContext(Dispatchers.Main) {
@@ -76,7 +82,7 @@ class GameLauncher(
             } catch (error: Exception) {
                 timber.log.Timber.e(error, "Could not launch game")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(activity, "Não foi possível abrir o jogo. Saia da sala e tente novamente.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity, error.message ?: "Não foi possível abrir o jogo.", Toast.LENGTH_LONG).show()
                 }
             }
         }

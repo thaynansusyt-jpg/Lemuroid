@@ -14,7 +14,7 @@ import java.util.UUID
 
 /** Atomic disk transactions and an OS file lock protect both Android processes. */
 object KlProfileStore {
-    data class Sii(val ink: String = "#243447", val shirt: String = "#0789FF", val clothes: String = "kl", val face: String = "happy", val badge: Int = 0)
+    data class Sii(val ink: String = "#243447", val shirt: String = "#0789FF", val clothes: String = "kl", val face: String = "happy", val badge: Int = 0, val skin: String = "#FFE6BE", val hair: String = "none")
     data class Day(val date: String, val millis: Long, val sessions: Int, val games: Map<String, Long>, val note: String)
     data class Profile(val key: String, val id: String, val name: String, val provider: String, val sii: Sii, val days: List<Day>, val earned: Set<Int>, val facts: KlAchievements.Facts) {
         val totalMillis get() = days.sumOf { it.millis }
@@ -72,7 +72,7 @@ object KlProfileStore {
         val avatar = p.optJSONObject("sii") ?: JSONObject()
         val days = p.getJSONObject("days")
         Profile(key, publicId(key), p.optString("name", "Jogador KL"), p.optString("provider", "local"),
-            Sii(avatar.optString("ink", "#243447"), avatar.optString("shirt", "#0789FF"), avatar.optString("clothes", "kl"), avatar.optString("face", "happy"), avatar.optInt("badge")),
+            Sii(avatar.optString("ink", "#243447"), avatar.optString("shirt", "#0789FF"), avatar.optString("clothes", "kl"), avatar.optString("face", "happy"), avatar.optInt("badge"), color(avatar.optString("skin"), "#FFE6BE"), avatar.optString("hair", "none")),
             days.keys().asSequence().sortedDescending().map { date ->
                 val d = days.getJSONObject(date)
                 val games = d.optJSONObject("games") ?: JSONObject()
@@ -89,11 +89,12 @@ object KlProfileStore {
         val (_, earned) = settle(p)
         if (name.trim() != p.optString("name") && name.isNotBlank()) event(p, "profile_name")
         val oldAvatar = p.optJSONObject("sii") ?: JSONObject()
-        val oldSii = Sii(oldAvatar.optString("ink", "#243447"), oldAvatar.optString("shirt", "#0789FF"), oldAvatar.optString("clothes", "kl"), oldAvatar.optString("face", "happy"), oldAvatar.optInt("badge"))
+        val oldSii = Sii(oldAvatar.optString("ink", "#243447"), oldAvatar.optString("shirt", "#0789FF"), oldAvatar.optString("clothes", "kl"), oldAvatar.optString("face", "happy"), oldAvatar.optInt("badge"), color(oldAvatar.optString("skin"), "#FFE6BE"), oldAvatar.optString("hair", "none"))
         if (sii != oldSii) event(p, "sii_edit")
         p.put("name", name.trim().take(32).ifBlank { "Jogador KL" })
         p.put("sii", JSONObject().put("ink", color(sii.ink, "#243447")).put("shirt", color(sii.shirt, "#0789FF"))
             .put("clothes", sii.clothes.takeIf { (it != "sonic" || 1 in earned) && (it != "super_sonic" || 100 in earned) && it in listOf("kl", "tee", "hoodie", "sport", "sii_plus", "sonic", "super_sonic") } ?: "kl")
+            .put("skin", color(sii.skin, "#FFE6BE")).put("hair", sii.hair.takeIf { it in listOf("none", "short", "wave") } ?: "none")
             .put("face", sii.face.takeIf { it in listOf("happy", "cool", "calm") } ?: "happy").put("badge", sii.badge.takeIf { it in earned } ?: 0))
         settle(p)
     }
