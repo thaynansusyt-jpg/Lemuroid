@@ -149,7 +149,7 @@ object SerialScanner {
         inputStream.buffered(READ_BUFFER_SIZE).use {
             return when (FileUtils.extractExtension(fileName)) {
                 "pbp" -> extractInfoForPBP(it)
-                "iso", "bin" -> standardExtractInfo(it)
+                "iso", "bin", "gcm" -> standardExtractInfo(it)
                 "3ds" -> extractInfoFor3DS(it)
                 else -> DiskInfo(null, null)
             }
@@ -160,6 +160,10 @@ object SerialScanner {
         openedStream.mark(READ_BUFFER_SIZE)
         val header = readByteArray(openedStream, ByteArray(READ_BUFFER_SIZE))
 
+        if (GameCubeHeader.matches(header)) {
+            openedStream.reset()
+            return DiskInfo(String(header.copyOfRange(0, 6), Charsets.US_ASCII), SystemID.GAMECUBE)
+        }
         val detectedSystem =
             MAGIC_NUMBERS
                 .firstOrNull {

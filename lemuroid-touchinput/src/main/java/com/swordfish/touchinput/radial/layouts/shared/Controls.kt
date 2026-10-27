@@ -34,31 +34,31 @@ fun SecondaryButtonL1() {
 
 context(PadKitScope, LayoutRadialSecondaryDialsScope)
 @Composable
-fun SecondaryButtonL2() {
+fun SecondaryButtonL2(label: String = "L2") {
     LemuroidControlButton(
         modifier = Modifier.radialPosition(120f),
         id = Id.Key(KeyEvent.KEYCODE_BUTTON_L2),
-        label = "L2",
+        label = label,
     )
 }
 
 context(PadKitScope, LayoutRadialSecondaryDialsScope)
 @Composable
-fun SecondaryButtonR1() {
+fun SecondaryButtonR1(label: String = "R1") {
     LemuroidControlButton(
         modifier = Modifier.radialPosition(90f),
         id = Id.Key(KeyEvent.KEYCODE_BUTTON_R1),
-        label = "R1",
+        label = label,
     )
 }
 
 context(PadKitScope, LayoutRadialSecondaryDialsScope)
 @Composable
-fun SecondaryButtonR2() {
+fun SecondaryButtonR2(label: String = "R2") {
     LemuroidControlButton(
         modifier = Modifier.radialPosition(60f),
         id = Id.Key(KeyEvent.KEYCODE_BUTTON_R2),
-        label = "R2",
+        label = label,
     )
 }
 

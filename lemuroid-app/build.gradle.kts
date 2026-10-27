@@ -22,9 +22,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     defaultConfig {
-        versionCode = 303
-        versionName = "1.0.0-rc.4" // Always remember to update Cores Tag!
+        versionCode = 305
+        versionName = "1.0.0-rc.5.1" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
+        if (providers.gradleProperty("klArm64Only").orNull == "true") {
+            ndk { abiFilters += "arm64-v8a" }
+        }
         buildConfigField("String", "KL_GOOGLE_CLIENT_ID", authLiteral("google.webClientId"))
         buildConfigField("String", "KL_GITHUB_CLIENT_ID", authLiteral("github.clientId"))
     }

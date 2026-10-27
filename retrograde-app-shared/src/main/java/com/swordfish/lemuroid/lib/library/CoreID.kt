@@ -76,6 +76,7 @@ enum class CoreID(
         "DeSmuME (Deprecated)",
         "libdesmume_libretro_android.so",
     ),
+    DOLPHIN("dolphin", "Dolphin • GameCube", "libdolphin_libretro_android.so"),
     MELONDS(
         "melonds",
         "MelonDS",

@@ -31,7 +31,8 @@ class LibretroDBMetadataProvider(private val ovgdbManager: LibretroDBManager) :
 
         val metadata =
             runCatching {
-                findByCRC(storageFile, db)
+                (if (storageFile.systemID == SystemID.GAMECUBE) findByKnownSystem(storageFile) else null)
+                    ?: findByCRC(storageFile, db)
                     ?: findBySerial(storageFile, db)
                     ?: findByFilename(db, storageFile)
                     ?: findByPathAndFilename(db, storageFile)

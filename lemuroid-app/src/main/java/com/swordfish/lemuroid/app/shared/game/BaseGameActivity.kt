@@ -100,6 +100,7 @@ abstract class BaseGameActivity : ImmersiveActivity() {
         KlLinkSession.readIntent(intent)
         super.onCreate(savedInstanceState)
         setUpExceptionsHandler()
+        com.swordfish.lemuroid.lib.game.KlLaunchTrace.record(applicationContext, "Tela do jogo criada; iniciando o serviço")
         GameService.startService(applicationContext, intent)
         game = intent.getSerializableExtra(EXTRA_GAME) as Game
         systemCoreConfig = intent.getSerializableExtra(EXTRA_SYSTEM_CORE_CONFIG) as SystemCoreConfig

@@ -10,6 +10,7 @@ enum class SystemID(val dbname: String) {
     N64("n64"),
     SMS("sms"),
     PSP("psp"),
+    GAMECUBE("gamecube"),
     NDS("nds"),
     GG("gg"),
     ATARI2600("atari2600"),

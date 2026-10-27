@@ -18,12 +18,13 @@ import androidx.compose.ui.window.DialogProperties
 import com.swordfish.lemuroid.R
 import com.swordfish.lemuroid.app.shared.profile.KlProfileStore
 
-private fun ink(value: String) = Color(android.graphics.Color.parseColor(value))
+private fun ink(value: String) = runCatching { Color(android.graphics.Color.parseColor(value)) }.getOrDefault(Color(0xFF243447))
 
 @Composable
 fun KlSii(sii: KlProfileStore.Sii, modifier: Modifier = Modifier) {
     val logo = ImageBitmap.imageResource(R.drawable.kl_play_logo)
-    Canvas(modifier.background(Color(0xFFEAF7FF))) {
+    val stage = MaterialTheme.colorScheme.secondaryContainer
+    Canvas(modifier.background(stage, androidx.compose.foundation.shape.RoundedCornerShape(24.dp))) {
         val u = minOf(size.width / 160f, size.height / 210f)
         val x = size.width / 2
         fun p(dx: Float, y: Float) = Offset(x + dx*u, y*u)
@@ -42,14 +43,18 @@ fun KlSii(sii: KlProfileStore.Sii, modifier: Modifier = Modifier) {
             drawCircle(shirt, 28*u, p(0f, 47f))
         }
         if (sii.clothes == "hoodie") drawCircle(shirt, 29*u, p(0f, 47f))
-        drawCircle(Color(0xFFFFE6BE), 22*u, p(0f, 47f))
+        drawCircle(ink(sii.skin), 22*u, p(0f, 47f))
         drawCircle(color, 22*u, p(0f, 47f), style = androidx.compose.ui.graphics.drawscope.Stroke(4*u))
+        if (!sonic && sii.hair != "none") {
+            drawArc(color, 180f, 180f, true, topLeft = p(-23f, 23f), size = androidx.compose.ui.geometry.Size(46*u, 30*u))
+            if (sii.hair == "wave") drawCircle(color, 11*u, p(-17f, 31f))
+        }
         val human = sii.clothes == "sii_plus"
         line(p(0f, 70f), p(0f, 142f))
         if (human) {
             drawArc(color, 180f, 180f, true, topLeft = p(-23f, 24f), size = androidx.compose.ui.geometry.Size(46*u, 34*u))
-            line(p(-16f, 85f), p(-42f, 126f), Color(0xFFFFE6BE), 13f)
-            line(p(16f, 85f), p(42f, 126f), Color(0xFFFFE6BE), 13f)
+            line(p(-16f, 85f), p(-42f, 126f), ink(sii.skin), 13f)
+            line(p(16f, 85f), p(42f, 126f), ink(sii.skin), 13f)
             line(p(-11f, 131f), p(-18f, 183f), color, 18f)
             line(p(11f, 131f), p(18f, 183f), color, 18f)
             line(p(-18f, 184f), p(-26f, 184f), shirt, 12f)
@@ -83,16 +88,24 @@ fun KlSii(sii: KlProfileStore.Sii, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KlSiiEditor(initial: KlProfileStore.Sii, siiPlus: Boolean = false, onClose: () -> Unit, onSave: (KlProfileStore.Sii) -> Unit, earned: Set<Int> = emptySet()) {
     var sii by remember { mutableStateOf(initial) }
+    var tab by remember { mutableStateOf(0) }
     var customInk by remember { mutableStateOf(initial.ink) }
     var customShirt by remember { mutableStateOf(initial.shirt) }
     AlertDialog(onDismissRequest = onClose, properties = DialogProperties(dismissOnClickOutside = false),
         title = { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Seu Sii"); TextButton(onClick = onClose) { Text("✕") } } },
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             KlSii(sii, Modifier.fillMaxWidth().height(180.dp))
-            Text("Camiseta KL • edição de lançamento")
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                listOf("Roupa", "Aparência").forEachIndexed { index, label ->
+                    SegmentedButton(selected = tab == index, onClick = { tab = index }, shape = SegmentedButtonDefaults.itemShape(index, 2)) { Text(label) }
+                }
+            }
+            if (tab == 0) {
+            Text("Seu guarda-roupa", style = MaterialTheme.typography.titleMedium)
             listOf("kl" to "Camiseta KL", "tee" to "Camiseta simples", "hoodie" to "Moletom", "sport" to "Esportiva").forEach { (key, label) ->
                 TextButton(onClick = { sii = sii.copy(clothes = key) }) { Text((if (sii.clothes == key) "✓ " else "") + label) }
             }
@@ -106,6 +119,17 @@ fun KlSiiEditor(initial: KlProfileStore.Sii, siiPlus: Boolean = false, onClose: 
                 }
             }
             if (sii.badge > 0) TextButton(onClick = { sii = sii.copy(badge = 0) }) { Text("Remover medalha do peito") }
+            } else {
+            Text("Tom de pele", style = MaterialTheme.typography.titleMedium)
+            Row { listOf("#FFE6BE", "#E4B68C", "#B77B53", "#70462F").forEach { value ->
+                TextButton(onClick = { sii = sii.copy(skin = value) }, Modifier.weight(1f)) {
+                    Text(if (sii.skin == value) "● ✓" else "●", color = ink(value), style = MaterialTheme.typography.headlineMedium)
+                }
+            } }
+            Text("Cabelo")
+            Row { listOf("none" to "Sem", "short" to "Curto", "wave" to "Onda").forEach { (key, label) ->
+                FilterChip(selected = sii.hair == key, onClick = { sii = sii.copy(hair = key) }, label = { Text(label) })
+            } }
             Text(if (sii.clothes == "sii_plus") "Cor do cabelo e da calça" else "Cor do palito")
             ColorChoices { sii = sii.copy(ink = it); customInk = it }
             OutlinedTextField(customInk, { customInk = it.take(7); if (it.matches(Regex("#[0-9a-fA-F]{6}"))) sii = sii.copy(ink = it) }, label = { Text("Cor personalizada #RRGGBB") }, singleLine = true)
@@ -113,6 +137,7 @@ fun KlSiiEditor(initial: KlProfileStore.Sii, siiPlus: Boolean = false, onClose: 
             ColorChoices { sii = sii.copy(shirt = it); customShirt = it }
             OutlinedTextField(customShirt, { customShirt = it.take(7); if (it.matches(Regex("#[0-9a-fA-F]{6}"))) sii = sii.copy(shirt = it) }, label = { Text("Cor personalizada #RRGGBB") }, singleLine = true)
             Row { listOf("happy" to "Feliz", "cool" to "Óculos", "calm" to "Calmo").forEach { (key, label) -> TextButton(onClick = { sii = sii.copy(face = key) }) { Text(label) } } }
+            }
         } }, confirmButton = { Button(onClick = { onSave(sii) }) { Text("Salvar") } })
 }
 

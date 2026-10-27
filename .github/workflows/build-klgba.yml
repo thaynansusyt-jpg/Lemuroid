@@ -1,9 +1,11 @@
-name: Build KL Play Definitive candidate
+name: Build KL Play Refresh candidate
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches: [dev]
+  push:
+    branches: [dev, feat/kl-refresh-ds]
 
 permissions:
   contents: write
@@ -15,7 +17,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,70 +54,50 @@ jobs:
           /tmp/kl-layout-test
           sdkmanager "cmake;3.22.1" "ndk;27.2.12479018"
 
-      - name: Check out pinned experimental GBA cable core
+      - name: Check out pinned DS online core
         uses: actions/checkout@v4
         with:
-          repository: Aelvryx/mgba-wifi-link
-          ref: 9e919b0cfbb93af7d1171570dfc6745d00eeebab
-          path: kl-link-source
+          repository: JesseTG/melonds-ds
+          ref: f394adbacb5722ee97c1b37c8064da9a25818310
+          path: kl-ds-source
 
-      - name: Verify real GBA cable and TCP boundaries
+      - name: Build Nintendo DS WFC core for Android ARM64
         run: |
-          python3 tools/kl-link/prepare-core.py kl-link-source
-          cmake -S kl-link-source -B kl-link-host -G Ninja \
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_QT=OFF -DBUILD_SDL=OFF -DBUILD_LIBRETRO=ON \
-            -DBUILD_TEST=OFF -DBUILD_SUITE=OFF -DBUILD_CINEMA=OFF \
-            -DBUILD_HEADLESS=OFF -DBUILD_EXAMPLE=OFF -DBUILD_LTO=OFF \
-            -DUSE_FFMPEG=OFF -DUSE_LUA=OFF -DENABLE_SCRIPTING=OFF -DUSE_DISCORD_RPC=OFF
-          cmake --build kl-link-host --parallel 2 --target mgba_libretro
-          gcc -O2 -I kl-link-source/src/platform/libretro -I tools/kl-link \
-            tools/kl-link/test-transport.c -o kl-transport-test
-          ./kl-transport-test
-          gcc -O2 -I kl-link-source/src/platform/libretro tools/kl-link/test-lan.c -ldl -o kl-lan-test
-          python3 tools/kl-link/test-lan.py kl-link-host/mgba_libretro.so \
-            kl-link-source/tools/gba-link-test-rom/fixtures/gba-link-continuous.gba ./kl-lan-test
-
-      - name: Build dedicated Android ARM64 cable core
-        env:
-          PKG_CONFIG_LIBDIR: /tmp/kl-empty-pkgconfig
-          PKG_CONFIG_PATH: ""
-        run: |
-          sdkmanager "ndk;27.2.12479018"
-          mkdir -p "$PKG_CONFIG_LIBDIR"
-          cmake -S kl-link-source -B kl-link-android -G Ninja \
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release \
+          cmake -S kl-ds-source -B kl-ds-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/27.2.12479018/build/cmake/android.toolchain.cmake" \
-            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21 \
-            -DBUILD_QT=OFF -DBUILD_SDL=OFF -DBUILD_LIBRETRO=ON \
-            -DBUILD_TEST=OFF -DBUILD_SUITE=OFF -DBUILD_CINEMA=OFF \
-            -DBUILD_HEADLESS=OFF -DBUILD_EXAMPLE=OFF -DBUILD_LTO=OFF
-          cmake --build kl-link-android --parallel 2 --target mgba_libretro
+            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24 \
+            -DANDROID_STL=c++_static -DENABLE_OPENGL=OFF -DENABLE_OPENGLES=OFF \
+            -DENABLE_COMPUTE_RENDERER=OFF -DENABLE_JIT=ON -DBUILD_TESTING=OFF \
+            -DMELONDS_REPOSITORY_TAG=16f127dbb587a73371827ce79689c5d237c4b59b
+          cmake --build kl-ds-build --parallel 2
           mkdir -p lemuroid-app/src/main/jniLibs/arm64-v8a
-          cp kl-link-android/mgba_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_mgba_link.so
-          printf '%s\n' 'mGBA Wi-Fi Link: Aelvryx/mgba-wifi-link@9e919b0cfbb93af7d1171570dfc6745d00eeebab' > "$RUNNER_TEMP/kl-link-source.txt"
+          core=$(find kl-ds-build -name 'melondsds_libretro_android.so' -print -quit)
+          test -n "$core"
+          cp "$core" lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_melondsds.so
+          printf '%s\n' 'melonDS DS: JesseTG/melonds-ds@f394adbacb5722ee97c1b37c8064da9a25818310; melonDS@16f127dbb587a73371827ce79689c5d237c4b59b; GPL-3.0' > "$RUNNER_TEMP/kl-link-source.txt"
 
-      - name: Check out pinned Pokemon wireless core
+      - name: Check out pinned Dolphin GameCube core
         uses: actions/checkout@v4
         with:
-          repository: libretro/gpsp
-          ref: 5819380c2ffb0900219d700a382ee68c464ebb99
-          path: kl-wireless-source
+          repository: libretro/dolphin
+          ref: 3aac3f052f733f8df2f1616843a4d2e14002ed11
+          path: kl-gamecube-source
+          submodules: recursive
 
-      - name: Verify and build Pokemon wireless adapter
+      - name: Build GameCube core and package system assets
         run: |
-          set -euo pipefail
-          python3 tools/kl-wireless/prepare.py kl-wireless-source
-          gcc -O1 -fsanitize=address,undefined -I kl-wireless-source/libretro/libretro-common/include -I tools/kl-wireless tools/kl-wireless/test-transport.c -o /tmp/kl-wireless-test
-          /tmp/kl-wireless-test
-          gcc -O1 -fsanitize=address,undefined -I kl-wireless-source/libretro/libretro-common/include -I tools/kl-wireless tools/kl-wireless/test-pacing.c -o /tmp/kl-pacing-test
-          /tmp/kl-pacing-test
-          toolchain="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin"
-          make -C kl-wireless-source -j2 platform=arm64 \
-            CC="$toolchain/aarch64-linux-android23-clang" \
-            CXX="$toolchain/aarch64-linux-android23-clang++"
-          cp kl-wireless-source/gpsp_libretro.so lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_gpsp_link.so
-          printf '%s\n' 'gpSP: libretro/gpsp@5819380c2ffb0900219d700a382ee68c464ebb99 + tools/kl-wireless/prepare.py' >> "$RUNNER_TEMP/kl-link-source.txt"
+          python3 -m pip install 'cmake==3.31.6' ninja
+          cmake -S kl-gamecube-source -B kl-gamecube-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/27.2.12479018/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-26 \
+            -DANDROID_STL=c++_static -DLIBRETRO=ON -DENABLE_QT=OFF \
+            -DENABLE_TESTS=OFF -DENABLE_VULKAN=OFF -DENABLE_LTO=OFF
+          cmake --build kl-gamecube-build --target dolphin_libretro --parallel 2
+          cp kl-gamecube-build/dolphin_libretro_android.so lemuroid-app/src/main/jniLibs/arm64-v8a/libdolphin_libretro_android.so
+          python3 tools/kl-gamecube/prepare-assets.py kl-gamecube-source
+          printf '%s\n' 'Dolphin: libretro/dolphin@3aac3f052f733f8df2f1616843a4d2e14002ed11 + bundled Sys assets; GPL-2.0-or-later' >> "$RUNNER_TEMP/kl-link-source.txt"
 
       - name: Check out pinned GB and GBC cable core
         uses: actions/checkout@v4
@@ -221,7 +203,7 @@ jobs:
           cat "$RUNNER_TEMP/kl-link-source.txt" >> public-apk/FONTE.txt
           printf '%s\n' 'LibretroDroid: Swordfish90/LibretroDroid@0ebd299624bfd51a0a1336dd0a2c56fe7ddbc0e3 + tools/kl-runtime/prepare.py' >> public-apk/FONTE.txt
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --print-certs "public-apk/KL-Play-$KL_VERSION.apk" > public-apk/ASSINATURA-PUBLICA.txt
-          for library in libkl_mgba_link.so libkl_gpsp_link.so libkl_gambatte_link.so; do
+          for library in libkl_melondsds.so libkl_gambatte_link.so libdolphin_libretro_android.so; do
             unzip -l "public-apk/KL-Play-$KL_VERSION.apk" | grep "lib/arm64-v8a/$library"
           done
           cd public-apk

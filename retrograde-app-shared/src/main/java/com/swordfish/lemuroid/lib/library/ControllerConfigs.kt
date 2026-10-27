@@ -183,6 +183,13 @@ object ControllerConfigs {
                 ),
         )
 
+    val GAMECUBE = ControllerConfig(
+        "default", R.string.controller_default, TouchControllerID.GAMECUBE,
+        allowTouchRotation = true,
+        libretroId = 1,
+        tiltConfigurations = listOf(TILT_CONFIGURATION_DISABLED),
+    )
+
     val PSP =
         ControllerConfig(
             "default",

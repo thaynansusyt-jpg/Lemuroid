@@ -52,6 +52,8 @@ import com.swordfish.touchinput.radial.layouts.WSLandscapeLeft
 import com.swordfish.touchinput.radial.layouts.WSLandscapeRight
 import com.swordfish.touchinput.radial.layouts.WSPortraitLeft
 import com.swordfish.touchinput.radial.layouts.WSPortraitRight
+import com.swordfish.touchinput.radial.layouts.GameCubeLeft
+import com.swordfish.touchinput.radial.layouts.GameCubeRight
 import gg.padkit.PadKitScope
 
 enum class TouchControllerID {
@@ -62,6 +64,7 @@ enum class TouchControllerID {
     PSX,
     PSX_DUALSHOCK,
     N64,
+    GAMECUBE,
     PSP,
     SNES,
     GBA,
@@ -138,6 +141,10 @@ enum class TouchControllerID {
                         { modifier, settings -> N64Right(modifier, settings) },
                     )
 
+                GAMECUBE -> Config(
+                    { modifier, settings -> GameCubeLeft(modifier, settings) },
+                    { modifier, settings -> GameCubeRight(modifier, settings) },
+                )
                 PSP ->
                     Config(
                         { modifier, settings -> PSPLeft(modifier, settings) },

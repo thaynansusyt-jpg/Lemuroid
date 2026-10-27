@@ -44,7 +44,7 @@ private fun LemuroidNavigationBar(
     val clickSound = com.swordfish.lemuroid.app.mobile.shared.compose.ui.rememberKlMenuClick()
     NavigationBar(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(28.dp)),
+            .clip(RoundedCornerShape(22.dp)),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp,
     ) {
@@ -60,7 +60,7 @@ private fun LemuroidNavigationBar(
                     )
                 },
                 label = { Text(stringResource(destination.titleId), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall) },
-                alwaysShowLabel = false,
+                alwaysShowLabel = true,
                 selected = isSelected,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,

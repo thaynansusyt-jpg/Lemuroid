@@ -20,3 +20,11 @@ release.jks
 
 kl-runtime-source/
 __pycache__/
+
+# Generated KL native cores and Dolphin system assets
+/lemuroid-app/src/main/jniLibs/
+/lemuroid-app/src/main/assets/dolphin-emu/Sys/
+
+.kotlin/
+
+.kl-downloads/
