@@ -10,6 +10,7 @@ import sys
 import urllib.parse
 root = Path(sys.argv[1]).resolve()
 project = Path(__file__).resolve().parents[2]
+subprocess.run([sys.executable, str(project / "tools/kl-build/prepare-test-cores.py")], check=True)
 env = os.environ.copy()
 env["JAVA_HOME"] = str(root / "jdk")
 env["ANDROID_HOME"] = env["ANDROID_SDK_ROOT"] = str(root / "sdk")

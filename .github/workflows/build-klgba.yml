@@ -95,7 +95,7 @@ jobs:
             -DANDROID_STL=c++_static -DLIBRETRO=ON -DENABLE_QT=OFF \
             -DENABLE_TESTS=OFF -DENABLE_VULKAN=OFF -DENABLE_LTO=OFF
           cmake --build kl-gamecube-build --target dolphin_libretro --parallel 2
-          cp kl-gamecube-build/dolphin_libretro_android.so lemuroid-app/src/main/jniLibs/arm64-v8a/
+          cp kl-gamecube-build/dolphin_libretro_android.so lemuroid-app/src/main/jniLibs/arm64-v8a/libdolphin_libretro_android.so
           python3 tools/kl-gamecube/prepare-assets.py kl-gamecube-source
           printf '%s\n' 'Dolphin: libretro/dolphin@3aac3f052f733f8df2f1616843a4d2e14002ed11 + bundled Sys assets; GPL-2.0-or-later' >> "$RUNNER_TEMP/kl-link-source.txt"
 

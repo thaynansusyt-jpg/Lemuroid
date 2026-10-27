@@ -26,3 +26,5 @@ __pycache__/
 /lemuroid-app/src/main/assets/dolphin-emu/Sys/
 
 .kotlin/
+
+.kl-downloads/
