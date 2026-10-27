@@ -1,0 +1,4 @@
+<resources>
+    <string name="game_system_title_gamecube">Nintendo GameCube</string>
+    <string name="game_system_abbr_gamecube">GC</string>
+</resources>

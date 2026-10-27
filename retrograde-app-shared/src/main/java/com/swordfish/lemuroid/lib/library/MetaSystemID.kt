@@ -48,6 +48,7 @@ enum class MetaSystemID(val titleResId: Int, val imageResId: Int, val systemIDs:
         R.drawable.game_system_sms,
         listOf(SystemID.SMS),
     ),
+    GAMECUBE(R.string.game_system_title_gamecube, R.drawable.game_system_gamecube, listOf(SystemID.GAMECUBE)),
     PSP(
         R.string.game_system_title_psp,
         R.drawable.game_system_psp,
@@ -134,6 +135,7 @@ enum class MetaSystemID(val titleResId: Int, val imageResId: Int, val systemIDs:
                 SystemID.N64 -> N64
                 SystemID.NDS -> NDS
                 SystemID.NES -> NES
+                SystemID.GAMECUBE -> GAMECUBE
                 SystemID.PSP -> PSP
                 SystemID.PSX -> PSX
                 SystemID.SMS -> SMS

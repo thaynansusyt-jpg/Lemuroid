@@ -795,6 +795,30 @@ data class GameSystem(
                     hasMultiDiskSupport = true,
                 ),
                 GameSystem(
+                    SystemID.GAMECUBE,
+                    "Nintendo - GameCube",
+                    R.string.game_system_title_gamecube,
+                    R.string.game_system_abbr_gamecube,
+                    listOf(SystemCoreConfig(
+                        CoreID.DOLPHIN,
+                        controllerConfigs = hashMapOf(0 to arrayListOf(ControllerConfigs.GAMECUBE)),
+                        defaultSettings = listOf(
+                            CoreVariable("dolphin_cpu_core", "4"),
+                            CoreVariable("dolphin_efb_scale", "1"),
+                            CoreVariable("dolphin_dsp_hle", "enabled"),
+                            CoreVariable("dolphin_skip_gc_bios", "enabled"),
+                            CoreVariable("dolphin_libretro_vfs_enabled", "disabled"),
+                        ),
+                        // Memory-card saves are supported; quick states need device validation.
+                        statesSupported = false,
+                        rumbleSupported = true,
+                        supportedOnlyArchitectures = setOf("arm64-v8a"),
+                    )),
+                    uniqueExtensions = listOf("gcm", "rvz", "gcz"),
+                    supportedExtensions = listOf("gcm", "rvz", "gcz", "iso"),
+                    fastForwardSupport = false,
+                ),
+                GameSystem(
                     SystemID.PSP,
                     "Sony - PlayStation Portable",
                     R.string.game_system_title_psp,

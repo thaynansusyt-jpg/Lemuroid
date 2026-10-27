@@ -49,6 +49,7 @@ fun KlPlaySettingsPanel() {
             KlPlayToggle(KlPlaySettings.NATIVE_RESOLUTION, "Resolução nativa", "Usa resolução 1x em 3DS e PSP, reduzindo a carga gráfica.")
             KlPlayToggle(KlPlaySettings.SHADER_CACHE, "Cache de shaders 3DS", "Reutiliza shaders. O primeiro carregamento ainda pode ter pausas.")
         }
+        KlSettingsSection("GameCube", "Dolphin, resolução e Dual Core", true) { KlGameCubeSettings() }
         KlSettingsSection("Nintendo DS", "Perfis de desempenho para melonDS", true) { KlDsSettings() }
         KlSettingsSection("CPU emulada do 3DS", "Ajuste avançado de clock") {
             KlCpuClockControl()

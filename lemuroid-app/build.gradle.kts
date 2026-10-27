@@ -25,6 +25,9 @@ android {
         versionCode = 304
         versionName = "1.0.0-rc.5" // Always remember to update Cores Tag!
         applicationId = "com.klgames.klgba"
+        if (providers.gradleProperty("klArm64Only").orNull == "true") {
+            ndk { abiFilters += "arm64-v8a" }
+        }
         buildConfigField("String", "KL_GOOGLE_CLIENT_ID", authLiteral("google.webClientId"))
         buildConfigField("String", "KL_GITHUB_CLIENT_ID", authLiteral("github.clientId"))
     }

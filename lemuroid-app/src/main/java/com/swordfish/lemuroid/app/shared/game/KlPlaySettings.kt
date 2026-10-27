@@ -34,6 +34,10 @@ object KlPlaySettings {
                 overrides["melonds_render_mode"] = "software"
             }
         }
+        if (core == "dolphin") {
+            overrides["dolphin_efb_scale"] = preferences(context).getInt("kl_gc_scale", 1).coerceIn(1, 2).toString()
+            overrides["dolphin_main_cpu_thread"] = if (preferences(context).getBoolean("kl_gc_dual_core", false)) "enabled" else "disabled"
+        }
         if (core == "citra") {
             val cpu = preferences(context).getInt(CPU_3DS, 0)
             if (cpu in listOf(50, 75, 100, 125, 150, 200)) overrides["citra_cpu_scale"] = if (cpu == 100) "100% (Default)" else "${cpu}%"

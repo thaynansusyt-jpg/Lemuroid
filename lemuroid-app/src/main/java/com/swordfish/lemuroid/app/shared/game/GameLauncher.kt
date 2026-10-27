@@ -64,6 +64,7 @@ class GameLauncher(
 
         GlobalScope.launch {
             try {
+                if (game.systemId == "gamecube") withContext(Dispatchers.IO) { KlGameCube.prepare(activity.applicationContext) }
                 val system = GameSystem.findById(game.systemId)
                 val coreConfig = if (link != null) {
                     com.swordfish.lemuroid.app.shared.multiplayer.KlLinkCoreConfig.resolve(system, link.mode)

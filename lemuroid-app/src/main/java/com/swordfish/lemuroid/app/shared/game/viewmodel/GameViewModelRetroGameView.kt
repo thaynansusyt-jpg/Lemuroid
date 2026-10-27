@@ -250,7 +250,9 @@ class GameViewModelRetroGameView(
             }
 
             systemDirectory = gameData.systemDirectory.absolutePath
-            savesDirectory = gameData.savesDirectory.absolutePath
+            savesDirectory = if (systemCoreConfig.coreID.coreName == "dolphin") {
+                java.io.File(gameData.savesDirectory, "dolphin").apply { mkdirs() }.absolutePath
+            } else gameData.savesDirectory.absolutePath
             variables = KlPlaySettings.coreOptions(appContext, systemCoreConfig.coreID.coreName, gameData.coreVariables.toList(), systemCoreConfig.coreLibraryFileNameOverride == com.swordfish.lemuroid.app.shared.multiplayer.KlDsWfc.LIBRARY).map { Variable(it.key, it.value) }.toTypedArray()
             saveRAMState = gameData.saveRAMData
             shader =

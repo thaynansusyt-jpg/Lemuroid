@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,6 +76,28 @@ jobs:
           test -n "$core"
           cp "$core" lemuroid-app/src/main/jniLibs/arm64-v8a/libkl_melondsds.so
           printf '%s\n' 'melonDS DS: JesseTG/melonds-ds@f394adbacb5722ee97c1b37c8064da9a25818310; melonDS@16f127dbb587a73371827ce79689c5d237c4b59b; GPL-3.0' > "$RUNNER_TEMP/kl-link-source.txt"
+
+      - name: Check out pinned Dolphin GameCube core
+        uses: actions/checkout@v4
+        with:
+          repository: libretro/dolphin
+          ref: 3aac3f052f733f8df2f1616843a4d2e14002ed11
+          path: kl-gamecube-source
+          submodules: recursive
+
+      - name: Build GameCube core and package system assets
+        run: |
+          python3 -m pip install 'cmake==3.31.6' ninja
+          cmake -S kl-gamecube-source -B kl-gamecube-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/27.2.12479018/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-26 \
+            -DANDROID_STL=c++_static -DLIBRETRO=ON -DENABLE_QT=OFF \
+            -DENABLE_TESTS=OFF -DENABLE_VULKAN=OFF -DENABLE_LTO=OFF
+          cmake --build kl-gamecube-build --target dolphin_libretro --parallel 2
+          cp kl-gamecube-build/dolphin_libretro_android.so lemuroid-app/src/main/jniLibs/arm64-v8a/
+          python3 tools/kl-gamecube/prepare-assets.py kl-gamecube-source
+          printf '%s\n' 'Dolphin: libretro/dolphin@3aac3f052f733f8df2f1616843a4d2e14002ed11 + bundled Sys assets; GPL-2.0-or-later' >> "$RUNNER_TEMP/kl-link-source.txt"
 
       - name: Check out pinned GB and GBC cable core
         uses: actions/checkout@v4
@@ -181,7 +203,7 @@ jobs:
           cat "$RUNNER_TEMP/kl-link-source.txt" >> public-apk/FONTE.txt
           printf '%s\n' 'LibretroDroid: Swordfish90/LibretroDroid@0ebd299624bfd51a0a1336dd0a2c56fe7ddbc0e3 + tools/kl-runtime/prepare.py' >> public-apk/FONTE.txt
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --print-certs "public-apk/KL-Play-$KL_VERSION.apk" > public-apk/ASSINATURA-PUBLICA.txt
-          for library in libkl_melondsds.so libkl_gambatte_link.so; do
+          for library in libkl_melondsds.so libkl_gambatte_link.so libdolphin_libretro_android.so; do
             unzip -l "public-apk/KL-Play-$KL_VERSION.apk" | grep "lib/arm64-v8a/$library"
           done
           cd public-apk

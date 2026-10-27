@@ -50,6 +50,7 @@ object ShaderChooser {
             SystemID.SNES -> ShaderConfig.CRT
             SystemID.FBNEO -> ShaderConfig.CRT
             SystemID.SMS -> ShaderConfig.CRT
+            SystemID.GAMECUBE -> ShaderConfig.Default
             SystemID.PSP -> ShaderConfig.LCD
             SystemID.NDS -> ShaderConfig.LCD
             SystemID.GG -> ShaderConfig.LCD
@@ -273,6 +274,7 @@ object ShaderChooser {
             SystemID.SNES -> upscale16Bits
             SystemID.FBNEO -> upscale32Bits
             SystemID.SMS -> upscale8Bits
+            SystemID.GAMECUBE -> modern
             SystemID.PSP -> modern
             SystemID.NDS -> upscale32Bits
             SystemID.GG -> upscale8BitsMobile
