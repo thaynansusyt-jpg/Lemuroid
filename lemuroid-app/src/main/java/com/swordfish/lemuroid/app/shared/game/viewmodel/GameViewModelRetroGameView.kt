@@ -249,6 +249,7 @@ class GameViewModelRetroGameView(
                 }
             }
 
+            com.swordfish.lemuroid.lib.game.KlLaunchTrace.record(appContext, "Preparando a emulação com o núcleo ${systemCoreConfig.coreID.coreName}")
             systemDirectory = gameData.systemDirectory.absolutePath
             savesDirectory = if (systemCoreConfig.coreID.coreName == "dolphin") {
                 java.io.File(gameData.savesDirectory, "dolphin").apply { mkdirs() }.absolutePath

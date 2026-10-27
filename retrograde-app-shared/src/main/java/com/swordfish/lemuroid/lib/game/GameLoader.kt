@@ -70,6 +70,7 @@ class GameLoader(
     ): Flow<LoadingState> =
         flow {
             try {
+                KlLaunchTrace.record(appContext, "Localizando a biblioteca do núcleo")
                 emit(LoadingState.LoadingCore)
 
                 val system = GameSystem.findById(game.systemId)
@@ -83,6 +84,7 @@ class GameLoader(
                         findLibrary(appContext, systemCoreConfig.coreID, systemCoreConfig.coreLibraryFileNameOverride)!!.absolutePath
                     }.getOrElse { throw GameLoaderException(GameLoaderError.LoadCore) }
 
+                KlLaunchTrace.record(appContext, "Lendo o arquivo do jogo")
                 emit(LoadingState.LoadingGame)
 
                 val missingBiosFiles = biosManager.getMissingBiosFiles(systemCoreConfig, game)

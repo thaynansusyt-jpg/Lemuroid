@@ -128,6 +128,7 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
             if (introduction.value) {
                 AppTheme { com.swordfish.lemuroid.app.mobile.feature.profile.KlIntroduction { introduction.value = false } }
             } else MainScreen(navController)
+            AppTheme { com.swordfish.lemuroid.app.mobile.shared.compose.ui.KlGameLaunchOverlay() }
         }
     }
 
@@ -414,6 +415,13 @@ class MainActivity : RetrogradeComponentActivity(), BusyActivity {
 
         when (requestCode) {
             BaseGameActivity.REQUEST_PLAY_GAME -> {
+                if (resultCode == android.app.Activity.RESULT_CANCELED) {
+                    com.swordfish.lemuroid.app.shared.game.KlGameLaunch.coordinator.reject(
+                        com.swordfish.lemuroid.app.shared.game.KlGameLaunch.lastTitle,
+                        "O processo do jogo foi encerrado sem retornar um erro detalhado. Última etapa: " +
+                            com.swordfish.lemuroid.lib.game.KlLaunchTrace.read(applicationContext),
+                    )
+                }
                 GlobalScope.safeLaunch {
                     gameLaunchTaskHandler.handleGameFinish(
                         true,
